@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset='utf-8'>
+    <link rel="stylesheet" href='../styles/styles.css'/>
+    <title>Main page</title>
+</head>
+<body>
+<div class="site-header">
+    <div class="site-name">CyberThreats Monitoring</div>
+</div>
+<div class="site-body">
+    <div class="card card-page">
+        <div class="card__content">
+            <h3 class="card__name">{{ .card.Name }} </h3>
+            <div class="card_description"> {{ .card.Description}}</div>
+            <div class="card__statistics">
+                <div class="card__statistics__header">Статистика</div>
+                <div class="card__statistics__item">
+                    Количество обнаружений за последний год: {{ .card.Count}}</div>
+                <div class="card__statistics__item">
+                    Средняя цена мониторинга(месяц): {{ .card.Price}}
+                </div>
+            </div>
+        </div>
+        <image src="{{ .card.Image}}" class="card__image"></image>
+    </div>
+</div>
+</body>
+</html>
