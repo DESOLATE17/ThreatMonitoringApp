@@ -1,7 +1,7 @@
 package models
 
 type Threat struct {
-	Id          string
+	Id          int `gorm:"primaryKey"`
 	Name        string
 	Description string
 	Image       string
