@@ -2,10 +2,11 @@
 drop table if exists "users" CASCADE;
 drop table if exists threats CASCADE;
 drop table if exists monitoring_requests CASCADE;
+drop table if exists monitoring_requests_threats CASCADE;
 
 create table "users"
 (
-    user_id           SERIAL                  not null
+    user_id           SERIAL unique           not null
         constraint user_pk
             primary key,
     login             varchar(40)             not null,
@@ -17,20 +18,23 @@ create table "users"
 --таблица услуг
 create table threats
 (
-    threat_id   SERIAL      not null
+    threat_id   SERIAL unique not null
         constraint threat_pk
             primary key,
-    name        varchar(60) not null,
-    description TEXT        not null,
-    image       varchar(60) not null,
+    name        varchar(60)   not null,
+    description TEXT          not null,
+    image       varchar(60)   not null,
     count       int default 0,
-    is_deleted  boolean     not null,
+    is_deleted  boolean       not null,
     price       int
 );
 --таблица заявок
 create table monitoring_requests
 (
-    request_id     SERIAL                  not null,
+    request_id     SERIAL unique           not null,
+    creator_id     int
+        constraint creator_id_fk
+            references "users" (user_id),
     status         varchar(20)             not null,
     creation_date  timestamp default now() not null,
     formation_date timestamp,
@@ -39,3 +43,16 @@ create table monitoring_requests
         constraint monitoring_request_user_id_fk
             references "users" (user_id)
 );
+-- таблица связи м:м
+create table monitoring_requests_threats
+(
+    id         serial not null,
+    request_id int
+        constraint request_id_fk
+            references monitoring_requests (request_id),
+    threat_id  int
+        constraint threats_id_fk
+            references threats (threat_id)
+);
+
+SELECT * FROM threats WHERE threat_id=6;

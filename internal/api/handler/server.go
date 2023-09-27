@@ -27,9 +27,26 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	r.GET("/home", h.GetCardsList)
 	r.GET("/card/:id", h.GetCardById)
+	r.POST("/card/:id", h.DeleteCard)
 
 	r.Static("/image", "./resources")
 	return r
+}
+
+func (h *Handler) DeleteCard(c *gin.Context) {
+	cardId := c.Param("id")
+	id, err := strconv.Atoi(cardId)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+	}
+
+	err = h.repo.DeleteThreatByID(id)
+	if err != nil { // если не получилось
+		log.Printf("cant get product by id %v", err)
+		c.Error(err)
+		return
+	}
+	c.Redirect(http.StatusFound, "/home")
 }
 
 func (h *Handler) GetCardsList(c *gin.Context) {

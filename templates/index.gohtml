@@ -18,7 +18,7 @@
     </div>
     <div class="cards-list">
         {{range .items}}
-            <a href="http://localhost:8080/card/{{ .Id}}">
+            <a href="http://localhost:8080/card/{{ .ThreatId}}">
                 <div class="card">
                     <div class="card__content">
                         <h3 class="card__name">{{ .Name }} </h3>
@@ -27,6 +27,9 @@
                     <image src="{{ .Image}}" class="card__image"></image>
                 </div>
             </a>
+            <form action="http://localhost:8080/card/{{ .ThreatId}}" method="post">
+                <button class="card-button">Удалить услугу</button>
+            </form>
         {{end}}
     </div>
 </div>

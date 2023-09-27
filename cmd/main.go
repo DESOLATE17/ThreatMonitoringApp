@@ -7,6 +7,8 @@ import (
 	"threat-monitoring/internal/pkg"
 )
 
+// TODO uml
+// TODO
 func main() {
 	dsn, err := pkg.GetConnectionString()
 	if err != nil {

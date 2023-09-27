@@ -39,14 +39,18 @@ func (r *Repository) GetThreatByID(threatId int) (models.Threat, error) {
 	return threat, nil
 }
 
+func (r *Repository) DeleteThreatByID(threatId int) error {
+	err := r.db.Exec("UPDATE threats SET is_deleted=true WHERE threat_id = ?", threatId).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *Repository) GetThreats() ([]models.Threat, error) {
-	threats := make([]models.Threat, 0, 4)
+	threats := make([]models.Threat, 0)
 
 	r.db.Where("is_deleted = ?", false).Find(&threats)
 
 	return threats, nil
-}
-
-func (r *Repository) CreateProduct(threat models.Threat) error {
-	return r.db.Create(threat).Error
 }
