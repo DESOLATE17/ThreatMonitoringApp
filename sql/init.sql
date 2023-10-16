@@ -1,4 +1,4 @@
---sudo docker run --name postgresql -e POSTGRES_USER=taktashova -e POSTGRES_PASSWORD=password123  -p 5432:5432 -d monitoring_app;
+--sudo docker run --name postgresql -e POSTGRES_USER=taktashova -e POSTGRES_PASSWORD=password123  -p 5432:5432 -d postgres
 drop table if exists "users" CASCADE;
 drop table if exists threats CASCADE;
 drop table if exists monitoring_requests CASCADE;
@@ -23,7 +23,7 @@ create table threats
             primary key,
     name        varchar(60)   not null,
     description TEXT          not null,
-    image       varchar(60)   not null,
+    image       TEXT   not null,
     count       int default 0,
     is_deleted  boolean       not null,
     price       int
@@ -31,7 +31,9 @@ create table threats
 --таблица заявок
 create table monitoring_requests
 (
-    request_id     SERIAL unique           not null,
+    request_id     SERIAL unique           not null
+        constraint monitoring_requests_pk
+            primary key,
     creator_id     int
         constraint creator_id_fk
             references "users" (user_id),
