@@ -1,2 +1,9 @@
 db:
-  connection_string: "host=localhost port=5432 user=taktashova dbname=postgres options='-c search_path=public' password=password123 sslmode=disable"
+  connection_string: "host=127.0.0.1 port=5433 user=taktashova dbname=postgres options='-c search_path=public' password=password123 sslmode=disable"
+
+minio:
+  host: "localhost:9000"
+  location: "us-east-1"
+  accessKeyId: "minio"
+  secretAccessKey: "minio124"
+  bucketName: "threats"

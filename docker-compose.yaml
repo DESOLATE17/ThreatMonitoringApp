@@ -1,0 +1,91 @@
+version: '3.7'
+
+x-minio-common: &minio-common
+  image: quay.io/minio/minio:RELEASE.2022-10-15T19-57-03Z # устанавливаем image
+  command: server --console-address ":9001" http://minio{1...4}/data{1...2}
+  environment:
+    MINIO_ACCESS_KEY: minio # пароль админа
+    MINIO_SECRET_KEY: minio124 # логин админа
+  expose:
+    - "9000"
+    - "9001"
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+    interval: 30s
+    timeout: 20s
+    retries: 3
+
+# запускает 4 контейнера docker, в которых запущены экземпляры сервера minio.
+# используя обратный прокси-сервер nginx, балансировку нагрузки, вы можете получить доступ
+# через порт 9000.
+services:
+  minio1:
+    <<: *minio-common
+    hostname: minio1 # указываем что адрес внутри подсети docker будет http://minio1:9000/ и на порту 9001 для админки соотвественно
+    volumes: # куда физически переадресовать* память(в какие разделы) из виртуальной(в докере) на вашу машину. по сути это работает как хард линк на файл/папку
+      - data1-1:/data1
+      - data1-2:/data2
+
+  minio2: # аналогично ставим 2-4 ноды
+    <<: *minio-common
+    hostname: minio2
+    volumes:
+      - data2-1:/data1
+      - data2-2:/data2
+
+  minio3:
+    <<: *minio-common
+    hostname: minio3
+    volumes:
+      - data3-1:/data1
+      - data3-2:/data2
+
+  minio4:
+    <<: *minio-common
+    hostname: minio4
+    volumes:
+      - data4-1:/data1
+      - data4-2:/data2
+
+  nginx: # наш еще один сервис в подсети docker будет nginx
+    image: nginx:1.19.2-alpine # исходники сервиса взять отсюда
+    hostname: nginx # hostname внутри подсети docker будет nginx
+    volumes:
+      # куда физически переадресовать* память(в какие разделы) из виртуальной(в докере) на вашу машину. по сути это работает как хард линк на файл/папку.
+      # доступ даем на ro (read only)
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "9000:9000" # форвардим порт 9000 из нашей локальной сети(localhost) (forward port) на исхоодный(внутри подсети docker)(source port)
+      - "9001:9001" # левый порт - порт вашей локальной сети компьютера, таргетный. порт справа - соурс порт - порт внутри подсети докера.
+    depends_on: # не запускай nginx пока не запустится весь кластер minio
+      - minio1
+      - minio2
+      - minio3
+      - minio4
+
+  postgres:
+    image: postgres:14
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+       - /home/ubuntu/db_data:/var/lib/postgresql/data
+       - ./sql/init.sql:/docker-entrypoint-initdb.d/initdb.sql
+
+
+## По умолчанию в этой конфигурации используется локальный драйвер docker по умолчанию,
+## Для пользовательских томов замените на конфигурацию драйвера тома.
+volumes:
+  data1-1:
+  data1-2:
+  data2-1:
+  data2-2:
+  data3-1:
+  data3-2:
+  data4-1:
+  data4-2:

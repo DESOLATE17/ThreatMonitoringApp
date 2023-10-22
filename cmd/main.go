@@ -1,27 +1,48 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
+	"context"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"threat-monitoring/internal/api/handler"
 	"threat-monitoring/internal/api/repository"
-	"threat-monitoring/internal/pkg"
+	minio "threat-monitoring/internal/pkg/minio"
+	"time"
 )
 
-// TODO uml
-// TODO
 func main() {
-	dsn, err := pkg.GetConnectionString()
-	if err != nil {
-		log.Error(err)
+	logger := logrus.New()
+	formatter := &logrus.TextFormatter{
+		TimestampFormat: time.DateTime,
+		FullTimestamp:   true,
 	}
-	log.Info(dsn)
+	logger.SetFormatter(formatter)
 
-	repo, err := repository.NewRepository(dsn)
-	if err != nil {
-		log.Error(err)
+	vp := viper.New()
+	if err := initConfig(vp); err != nil {
+		logger.Fatalf("error initializing configs: %s", err.Error())
 	}
 
-	handler := handler.NewHandler(repo)
+	repo, err := repository.NewRepository(logger, vp)
+	if err != nil {
+		logger.Error(err)
+	}
+
+	minioConfig := minio.InitConfig(vp)
+
+	minioClient, err := minio.NewMinioClient(context.Background(), minioConfig, logger)
+	if err != nil {
+		logger.Fatalln(err)
+	}
+
+	handler := handler.NewHandler(repo, minioClient, logger)
 	r := handler.InitRoutes()
 	r.Run()
+}
+
+func initConfig(vp *viper.Viper) error {
+	vp.AddConfigPath("./config")
+	vp.SetConfigName("config")
+
+	return vp.ReadInConfig()
 }

@@ -25,7 +25,7 @@ create table threats
     description TEXT          not null,
     image       TEXT   not null,
     count       int default 0,
-    is_deleted  boolean       not null,
+    is_deleted  boolean       not null default FALSE,
     price       int
 );
 --таблица заявок
@@ -54,7 +54,8 @@ create table monitoring_requests_threats
             references monitoring_requests (request_id),
     threat_id  int
         constraint threats_id_fk
-            references threats (threat_id)
+            references threats (threat_id),
+    unique (request_id, threat_id)
 );
 
 SELECT * FROM threats WHERE threat_id=6;
