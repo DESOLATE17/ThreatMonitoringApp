@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"threat-monitoring/internal/models"
+	"threat-monitoring/internal/utils"
 )
 
 func (h *Handler) DeleteThreat(c *gin.Context) {
@@ -111,10 +112,6 @@ func (h *Handler) AddThreat(c *gin.Context) {
 // изменяет данные про угрозу
 func (h *Handler) UpdateThreat(c *gin.Context) {
 	file, header, err := c.Request.FormFile("image")
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
 
 	var updateThreat models.Threat
 	threatId := c.Param("id")
@@ -148,6 +145,13 @@ func (h *Handler) UpdateThreat(c *gin.Context) {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
+
+		// delete old image from db
+
+		url := h.repo.DeleteThreatImage(updateThreat.ThreatId)
+
+		// delete image from minio
+		h.minio.DeleteImage(c.Request.Context(), utils.ExtractObjectNameFromUrl(url))
 	}
 
 	if err = h.repo.UpdateThreat(updateThreat); err != nil {
@@ -155,5 +159,5 @@ func (h *Handler) UpdateThreat(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, "услуга успешно изменена")
+	c.JSON(http.StatusOK, gin.H{"message": "услуга успешно изменена"})
 }

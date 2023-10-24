@@ -128,7 +128,7 @@ func (r *Repository) AddThreatToRequest(request models.MonitoringRequestCreateMe
 // присваивает заявке статус удалено
 func (r *Repository) DeleteMonitoringRequest(id int) error {
 	var request models.MonitoringRequest
-	res := r.db.First(&request, "id =?", id)
+	res := r.db.First(&request, "creator_id =? and status = 'created'", id)
 	if res.Error != nil {
 		r.logger.Error("error while getting monitoring request")
 		return res.Error
@@ -142,13 +142,16 @@ func (r *Repository) DeleteMonitoringRequest(id int) error {
 // изменение статуса клиента
 func (r *Repository) UpdateMonitoringRequestClient(id int, status string) error {
 	var monitoringRequest models.MonitoringRequest
-	err := r.db.First(&monitoringRequest, "request_id = ? and status = 'created'", id)
+	err := r.db.First(&monitoringRequest, "creator_id = ? and status = 'created'", id)
 	if err.Error != nil {
 		r.logger.Error("error while getting monitoring request")
 		return err.Error
 	}
 
 	monitoringRequest.Status = status
+	if status == "formated" {
+		monitoringRequest.FormationDate = time.Now()
+	}
 	res := r.db.Save(&monitoringRequest)
 
 	return res.Error
@@ -170,7 +173,7 @@ func (r *Repository) GetMonitoringRequestDraft(userId int) (int, error) {
 func (r *Repository) UpdateMonitoringRequestAdmin(id int, status string) error {
 	var monitoringRequest models.MonitoringRequest
 
-	err := r.db.First(&monitoringRequest, "request_id = ? and status = 'formated'", id)
+	err := r.db.First(&monitoringRequest, "creator_id = ? and status = 'formated'", id)
 	if err.Error != nil {
 		r.logger.Error("error while getting monitoring request")
 		return err.Error
@@ -183,15 +186,26 @@ func (r *Repository) UpdateMonitoringRequestAdmin(id int, status string) error {
 }
 
 // удаление услуги из заявки
-func (r *Repository) DeleteThreatFromRequest(requestId, threatId int) error {
-	var monitoringRequestThreats models.MonitoringRequestsThreats
-	err := r.db.First(&monitoringRequestThreats, "request_id = ? AND threat_id = ?", requestId, threatId)
-	if err.Error != nil {
-		r.logger.Error("error while getting monitoring request threats", err)
-		return errors.New("такой услуги нет в заявке")
+func (r *Repository) DeleteThreatFromRequest(userId, threatId int) (models.MonitoringRequest, []models.Threat, error) {
+	var request models.MonitoringRequest
+	r.db.Where("creator_id = ? and status = 'created'", userId).First(&request)
+
+	if request.RequestId == 0 {
+		return models.MonitoringRequest{}, nil, errors.New("no such request")
 	}
 
-	res := r.db.Where("request_id = ? AND threat_id = ?", requestId, threatId).Delete(&monitoringRequestThreats)
+	var monitoringRequestThreats models.MonitoringRequestsThreats
+	err := r.db.Where("request_id = ? AND threat_id = ?", request.RequestId, threatId).First(&monitoringRequestThreats).Error
+	if err != nil {
+		return models.MonitoringRequest{}, nil, errors.New("такой угрозы нет в данной заявке")
+	}
 
-	return res.Error
+	err = r.db.Where("request_id = ? AND threat_id = ?", request.RequestId, threatId).
+		Delete(models.MonitoringRequestsThreats{}).Error
+
+	if err != nil {
+		return models.MonitoringRequest{}, nil, err
+	}
+
+	return r.GetMonitoringRequestById(request.RequestId)
 }

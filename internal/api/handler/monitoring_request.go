@@ -31,11 +31,11 @@ func (h *Handler) GetMonitoringRequestsList(c *gin.Context) {
 			c.AbortWithStatusJSON(http.StatusBadRequest, err)
 			return
 		}
-	}
 
-	if endDate.Before(startDate) {
-		c.AbortWithStatusJSON(http.StatusBadRequest, "end_date cant be before start_date")
-		return
+		if endDate.Before(startDate) {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "end_date не может быть раньше, чем start_date"})
+			return
+		}
 	}
 
 	monitoringRequests, err := h.repo.GetMonitoringRequests(status, startDate, endDate)
@@ -76,87 +76,71 @@ func (h *Handler) AddThreatToRequest(c *gin.Context) {
 	request.CreatorId = models.GetClientId()
 
 	if request.ThreatId == 0 {
-		c.AbortWithStatusJSON(http.StatusBadRequest, "услуга не может быть пустой")
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "услуга не может быть пустой"})
 		return
 	}
 
 	err = h.repo.AddThreatToRequest(request)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, "услуга добавлена в заявку")
+	c.JSON(http.StatusOK, gin.H{"message": "услуга добавлена в заявку"})
 	return
 }
 
 // логически удаляет заявку
 func (h *Handler) DeleteMonitoringRequest(c *gin.Context) {
-	id_param := c.Param("id")
-	id, err := strconv.Atoi(id_param)
+	userId := models.GetClientId()
+	err := h.repo.DeleteMonitoringRequest(userId)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 	}
-	err2 := h.repo.DeleteMonitoringRequest(id)
-	if err2 != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
-	}
-	c.JSON(http.StatusOK, "заявка успешно удалена")
+	c.JSON(http.StatusOK, gin.H{"message": "заявка успешно удалена"})
 }
 
 // изменяет статус клиента в заявке
 func (h *Handler) UpdateMonitoringRequestClient(c *gin.Context) {
-	threatIdStr := c.Param("id")
-	threatId, err := strconv.Atoi(threatIdStr)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
-	}
-
 	var newRequestStatus models.MonitoringRequest
-	err = c.BindJSON(&newRequestStatus)
+	err := c.BindJSON(&newRequestStatus)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if newRequestStatus.Status != "formated" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, "Поменять статус можно только на 'сформирован'")
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Поменять статус можно только на 'formated'"})
 		return
 	}
 
-	err = h.repo.UpdateMonitoringRequestClient(threatId, newRequestStatus.Status)
+	err = h.repo.UpdateMonitoringRequestClient(models.GetClientId(), newRequestStatus.Status)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, "Статус изменен")
+	c.JSON(http.StatusOK, gin.H{"message": "Статус изменен"})
 }
 
 // изменяет статус администратором в заявке
 func (h *Handler) UpdateMonitoringRequestAdmin(c *gin.Context) {
-	threatIdStr := c.Param("id")
-	threatId, err := strconv.Atoi(threatIdStr)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
-	}
-
 	var newRequestStatus models.MonitoringRequest
-	err = c.BindJSON(&newRequestStatus)
+	err := c.BindJSON(&newRequestStatus)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
 	}
-	if newRequestStatus.Status != "accepted" && newRequestStatus.Status != "canceled" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, "Поменять статус можно только на 'принят' и 'отменен'")
+	if newRequestStatus.Status != "accepted" && newRequestStatus.Status != "canceled" && newRequestStatus.Status != "closed" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Поменять статус можно только на 'accepted, 'closed' и 'canceled'"})
 		return
 	}
-	err = h.repo.UpdateMonitoringRequestAdmin(threatId, newRequestStatus.Status)
+	err = h.repo.UpdateMonitoringRequestAdmin(models.GetClientId(), newRequestStatus.Status)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, "Статус изменен")
+	c.JSON(http.StatusOK, gin.H{"message": "Статус изменен"})
 	return
 }
 
@@ -168,17 +152,12 @@ func (h *Handler) DeleteThreatFromRequest(c *gin.Context) {
 		return
 	}
 
-	requestIdStr := c.Param("requestId")
-	requestId, err := strconv.Atoi(requestIdStr)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
-		return
-	}
+	userId := models.GetClientId()
 
-	err = h.repo.DeleteThreatFromRequest(requestId, threatId)
+	request, threats, err := h.repo.DeleteThreatFromRequest(userId, threatId)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, "Угроза удалена из заявки")
+	c.JSON(http.StatusOK, gin.H{"message": "Угроза удалена из заявки", "threats": threats, "monitoring-request": request})
 }

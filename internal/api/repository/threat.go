@@ -72,3 +72,10 @@ func (r *Repository) AddThreat(newThreat models.Threat) error {
 	result := r.db.Create(&newThreat)
 	return result.Error
 }
+
+func (r *Repository) DeleteThreatImage(threatId int) string {
+	threat := models.Threat{}
+
+	r.db.First(&threat, "threat_id = ?", strconv.Itoa(threatId))
+	return threat.Image
+}

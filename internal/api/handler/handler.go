@@ -24,23 +24,24 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/styles", "./styles")
 	r.Static("/image", "./resources")
-	// услуги
+	// услуги - угрозы
 	r.GET("/threats", h.GetThreatsList)
 	r.GET("/threats/:id", h.GetThreatById)
 	r.DELETE("/threats/:id", h.DeleteThreat)
 	r.POST("/threats", h.AddThreat)
 	r.PUT("/threats/:id", h.UpdateThreat)
+	r.POST("/threats/request", h.AddThreatToRequest)
 
-	// заявки
+	// заявки - мониторинг угроз
 	r.GET("/monitoring-requests", h.GetMonitoringRequestsList)
 	r.GET("/monitoring-requests/:id", h.GetMonitoringRequestById)
-	r.DELETE("/monitoring-requests/:id", h.DeleteMonitoringRequest)
-	r.PUT("/monitoring-requests/:id/client", h.UpdateMonitoringRequestClient)
-	r.PUT("/monitoring-requests/:id/admin", h.UpdateMonitoringRequestAdmin)
+	r.DELETE("/monitoring-requests", h.DeleteMonitoringRequest)
+	r.PUT("/monitoring-requests/client", h.UpdateMonitoringRequestClient)
+	r.PUT("/monitoring-requests/admin", h.UpdateMonitoringRequestAdmin)
 
 	// м-м
-	r.POST("/monitoring-request-threats", h.AddThreatToRequest)
-	r.DELETE("/monitoring-request-threats/monitoring-requests/:requestId/threats/:threatId", h.DeleteThreatFromRequest)
+
+	r.DELETE("/monitoring-request-threats/threats/:threatId", h.DeleteThreatFromRequest)
 
 	return r
 }

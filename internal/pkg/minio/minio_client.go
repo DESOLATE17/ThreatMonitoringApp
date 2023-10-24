@@ -21,6 +21,7 @@ type Minio struct {
 
 type Client interface {
 	SaveImage(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error)
+	DeleteImage(ctx context.Context, objectName string) error
 }
 
 type MinioConfig struct {
@@ -77,4 +78,8 @@ func (m *Minio) SaveImage(ctx context.Context, file multipart.File, header *mult
 	}
 
 	return fmt.Sprintf("http://%s/%s/%s", m.Host, m.BucketName, objectName), nil
+}
+
+func (m *Minio) DeleteImage(ctx context.Context, objectName string) error {
+	return m.Client.RemoveObject(ctx, m.BucketName, objectName, minio.RemoveObjectOptions{})
 }
