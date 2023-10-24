@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"threat-monitoring/internal/models"
@@ -14,12 +12,12 @@ func (h *Handler) DeleteThreat(c *gin.Context) {
 	cardId := c.Param("id")
 	id, err := strconv.Atoi(cardId)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, err)
 	}
 
 	err = h.repo.DeleteThreatByID(id)
 	if err != nil {
-		log.Printf("cant get threat by id %v", err)
+		h.logger.Error("cant get threat by id %v", err)
 		c.Error(err)
 		return
 	}
@@ -70,13 +68,13 @@ func (h *Handler) AddThreat(c *gin.Context) {
 	var newThreat models.Threat
 	file, header, err := c.Request.FormFile("image")
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "ошибка при загрузке изображения"})
 		return
 	}
 
 	newThreat.Name = c.Request.FormValue("name")
 	if newThreat.Name == "" {
-		c.AbortWithError(http.StatusBadRequest, errors.New("имя угрозы не может быть пустым"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "имя угрозы не может быть пустым"})
 		return
 	}
 
@@ -92,17 +90,17 @@ func (h *Handler) AddThreat(c *gin.Context) {
 	price := c.Request.FormValue("price")
 	newThreat.Price, err = strconv.Atoi(price)
 	if err != nil || newThreat.Price == 0 {
-		c.AbortWithError(http.StatusBadRequest, errors.New("цена указана неверно"))
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "цена указана неверно"})
 		return
 	}
 
 	if newThreat.Image, err = h.minio.SaveImage(c.Request.Context(), file, header); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "ошибка при сохранении изображения"})
 		return
 	}
 
 	if err = h.repo.AddThreat(newThreat); err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
 		return
 	}
 
@@ -117,7 +115,7 @@ func (h *Handler) UpdateThreat(c *gin.Context) {
 	threatId := c.Param("id")
 	updateThreat.ThreatId, err = strconv.Atoi(threatId)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err})
 	}
 
 	updateThreat.Name = c.Request.FormValue("name")
@@ -127,7 +125,7 @@ func (h *Handler) UpdateThreat(c *gin.Context) {
 	if count != "" {
 		updateThreat.Count, err = strconv.Atoi(count)
 		if err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err})
 			return
 		}
 	}
@@ -136,13 +134,13 @@ func (h *Handler) UpdateThreat(c *gin.Context) {
 	if price != "" {
 		updateThreat.Price, err = strconv.Atoi(price)
 		if err != nil || updateThreat.Price == 0 {
-			c.AbortWithError(http.StatusBadRequest, errors.New("цена указана неверно"))
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "цена указана неверно"})
 			return
 		}
 	}
 	if header != nil && header.Size != 0 {
 		if updateThreat.Image, err = h.minio.SaveImage(c.Request.Context(), file, header); err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err})
 			return
 		}
 
@@ -155,7 +153,7 @@ func (h *Handler) UpdateThreat(c *gin.Context) {
 	}
 
 	if err = h.repo.UpdateThreat(updateThreat); err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 

@@ -96,6 +96,7 @@ func (h *Handler) DeleteMonitoringRequest(c *gin.Context) {
 	err := h.repo.DeleteMonitoringRequest(userId)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "заявка успешно удалена"})
 }
