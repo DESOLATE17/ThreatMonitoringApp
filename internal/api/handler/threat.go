@@ -8,9 +8,19 @@ import (
 	"threat-monitoring/internal/utils"
 )
 
+// DeleteThreat godoc
+// @Summary      Delete threat by ID
+// @Description  Deletes a threat with the given ID
+// @Tags         Threats
+// @Accept       json
+// @Produce      json
+// @Param        id  path  int  true  "Threat ID"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  error
+// @Router       /threats/{id} [delete]
 func (h *Handler) DeleteThreat(c *gin.Context) {
-	cardId := c.Param("id")
-	id, err := strconv.Atoi(cardId)
+	threatId := c.Param("id")
+	id, err := strconv.Atoi(threatId)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err)
 	}
@@ -21,21 +31,31 @@ func (h *Handler) DeleteThreat(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, "threat deleted successfully")
+	c.JSON(http.StatusOK, gin.H{"message": "угроза успешно удалена"})
 }
 
+// GetThreatsList godoc
+// @Summary      Get threats list
+// @Description  Retrieves a list of threats based on the provided query.
+// @Tags         Threats
+// @Accept       json
+// @Produce      json
+// @Param        query   query    string  false  "Query string to filter threats"
+// @Success      200  {object}  map[string]any
+// @Failure      500  {object}  error
+// @Router       /threats [get]
 func (h *Handler) GetThreatsList(c *gin.Context) {
 	query := c.Query("query")
 
 	threats, err := h.repo.GetThreatsList(query)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	requestId, err := h.repo.GetMonitoringRequestDraft(models.GetClientId())
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -46,6 +66,15 @@ func (h *Handler) GetThreatsList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"threats": threats, "draftId": requestId})
 }
 
+// GetThreatById godoc
+// @Summary      Get threat by ID
+// @Description  Retrieves a threat by its ID
+// @Tags         Threats
+// @Produce      json
+// @Param        id   path    int     true        "Threat ID"
+// @Success      200  {object}  models.Threat
+// @Failure      400  {object}  error
+// @Router       /threat/{id} [get]
 func (h *Handler) GetThreatById(c *gin.Context) {
 	cardId := c.Param("id")
 	id, err := strconv.Atoi(cardId)
@@ -64,6 +93,21 @@ func (h *Handler) GetThreatById(c *gin.Context) {
 	c.JSON(http.StatusOK, threat)
 }
 
+// AddThreat godoc
+// @Summary      Add new threat
+// @Description  Add a new threat with image, name, description, count, and price
+// @Tags         Threats
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        image formData file true "Threat image"
+// @Param        name formData string true "Threat name"
+// @Param        description formData string false "Threat description"
+// @Param        count formData integer true "Threat count"
+// @Param        price formData integer true "Threat price"
+// @Success      201  {string}  map[string]an
+// @Failure      400  {object}  map[string]any
+// @Failure      500  {object}  map[string]any
+// @Router       /threats [post]
 func (h *Handler) AddThreat(c *gin.Context) {
 	var newThreat models.Threat
 	file, header, err := c.Request.FormFile("image")
@@ -104,7 +148,7 @@ func (h *Handler) AddThreat(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, "новая услуга успешно добавлена")
+	c.JSON(http.StatusCreated, gin.H{"message": "новая услуга успешно добавлена"})
 }
 
 // изменяет данные про угрозу

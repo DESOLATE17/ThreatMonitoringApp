@@ -22,6 +22,10 @@ func NewRepository(logger *logrus.Logger, vp *viper.Viper) (*Repository, error) 
 
 	//Migrate the schema
 	err = db.AutoMigrate(&models.Threat{})
+	err = db.AutoMigrate(&models.User{})
+	err = db.AutoMigrate(&models.MonitoringRequest{})
+	err = db.AutoMigrate(&models.MonitoringRequestsThreats{})
+
 	if err != nil {
 		logger.Fatal("cant migrate db")
 	}

@@ -7,3 +7,7 @@ minio:
   accessKeyId: "minio"
   secretAccessKey: "minio124"
   bucketName: "threats"
+
+redis:
+  dialTimeout: "10s"
+  readTimeout: "10s"

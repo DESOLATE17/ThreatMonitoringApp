@@ -10,7 +10,7 @@ x-minio-common: &minio-common
     - "9000"
     - "9001"
   healthcheck:
-    test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+    test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
     interval: 30s
     timeout: 20s
     retries: 3
@@ -74,9 +74,17 @@ services:
     ports:
       - "5433:5432"
     volumes:
-       - /home/ubuntu/db_data:/var/lib/postgresql/data
-       - ./sql/init.sql:/docker-entrypoint-initdb.d/initdb.sql
+      - /home/ubuntu/db_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/initdb.sql
 
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass password
+    volumes:
+      - redis-data:/data
 
 ## По умолчанию в этой конфигурации используется локальный драйвер docker по умолчанию,
 ## Для пользовательских томов замените на конфигурацию драйвера тома.
@@ -89,3 +97,7 @@ volumes:
   data3-2:
   data4-1:
   data4-2:
+  postgresdb-data:
+    driver: local
+  redis-data:
+    driver: local
