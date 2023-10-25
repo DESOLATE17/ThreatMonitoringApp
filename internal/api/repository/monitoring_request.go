@@ -16,25 +16,25 @@ func (r *Repository) GetMonitoringRequests(status string, startDate, endDate tim
 		if startDate.IsZero() {
 			if endDate.IsZero() {
 				// фильтрация только по статусу
-				res := r.db.Where("status = ? AND status != 'delete'", status).Find(&monitoringRequests)
+				res := r.db.Where("status = ? AND status != 'deleted'", status).Find(&monitoringRequests)
 				return monitoringRequests, res.Error
 			}
 
 			// фильтрация по статусу и endDate
-			res := r.db.Where("status = ? AND status != 'delete'", status).Where("creation_date < ?", endDate).
+			res := r.db.Where("status = ?", status).Where("creation_date < ?", endDate).
 				Find(&monitoringRequests)
 			return monitoringRequests, res.Error
 		}
 
 		// фильтрация по статусу и startDate
 		if endDate.IsZero() {
-			res := r.db.Where("status = ? AND status != 'delete'", status).Where("creation_date > ?", startDate).
+			res := r.db.Where("status = ?", status).Where("creation_date > ?", startDate).
 				Find(&monitoringRequests)
 			return monitoringRequests, res.Error
 		}
 
 		// фильтрация по статусу, startDate и endDate
-		res := r.db.Where("status = ? AND status != 'delete'", status).Where("creation_date BETWEEN ? AND ?", startDate, endDate).
+		res := r.db.Where("status = ?", status).Where("creation_date BETWEEN ? AND ?", startDate, endDate).
 			Find(&monitoringRequests)
 		return monitoringRequests, res.Error
 	}
@@ -42,7 +42,7 @@ func (r *Repository) GetMonitoringRequests(status string, startDate, endDate tim
 	if startDate.IsZero() {
 		if endDate.IsZero() {
 			// без фильтрации
-			res := r.db.Where("status <> ?", "delete").Find(&monitoringRequests)
+			res := r.db.Find(&monitoringRequests)
 			return monitoringRequests, res.Error
 		}
 
@@ -173,7 +173,7 @@ func (r *Repository) GetMonitoringRequestDraft(userId int) (int, error) {
 func (r *Repository) UpdateMonitoringRequestAdmin(id int, status string) error {
 	var monitoringRequest models.MonitoringRequest
 
-	err := r.db.First(&monitoringRequest, "creator_id = ? and status = 'formated'", id)
+	err := r.db.First(&monitoringRequest, "request_id = ? and status = 'formated'", id)
 	if err.Error != nil {
 		r.logger.Error("error while getting monitoring request")
 		return err.Error

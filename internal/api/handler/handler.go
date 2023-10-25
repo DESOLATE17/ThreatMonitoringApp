@@ -37,7 +37,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	r.GET("/monitoring-requests/:id", h.GetMonitoringRequestById)
 	r.DELETE("/monitoring-requests", h.DeleteMonitoringRequest)
 	r.PUT("/monitoring-requests/client", h.UpdateMonitoringRequestClient)
-	r.PUT("/monitoring-requests/admin", h.UpdateMonitoringRequestAdmin)
+	r.PUT("/monitoring-requests/:id/admin", h.UpdateMonitoringRequestAdmin)
 
 	// м-м
 

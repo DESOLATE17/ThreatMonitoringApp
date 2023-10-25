@@ -132,11 +132,17 @@ func (h *Handler) UpdateMonitoringRequestAdmin(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
 	}
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, err)
+		return
+	}
 	if newRequestStatus.Status != "accepted" && newRequestStatus.Status != "canceled" && newRequestStatus.Status != "closed" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Поменять статус можно только на 'accepted, 'closed' и 'canceled'"})
 		return
 	}
-	err = h.repo.UpdateMonitoringRequestAdmin(models.GetClientId(), newRequestStatus.Status)
+	err = h.repo.UpdateMonitoringRequestAdmin(id, newRequestStatus.Status)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
