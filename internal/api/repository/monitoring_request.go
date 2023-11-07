@@ -16,25 +16,25 @@ func (r *Repository) GetMonitoringRequests(status string, startDate, endDate tim
 		if startDate.IsZero() {
 			if endDate.IsZero() {
 				// фильтрация только по статусу
-				res := r.db.Where("status = ? AND status != 'deleted'", status).Find(&monitoringRequests)
+				res := r.db.Where("status = ?", status).Find(&monitoringRequests)
 				return monitoringRequests, res.Error
 			}
 
 			// фильтрация по статусу и endDate
-			res := r.db.Where("status = ?", status).Where("creation_date < ?", endDate).
+			res := r.db.Where("status = ?", status).Where("formation_date < ?", endDate).
 				Find(&monitoringRequests)
 			return monitoringRequests, res.Error
 		}
 
 		// фильтрация по статусу и startDate
 		if endDate.IsZero() {
-			res := r.db.Where("status = ?", status).Where("creation_date > ?", startDate).
+			res := r.db.Where("status = ?", status).Where("formation_date > ?", startDate).
 				Find(&monitoringRequests)
 			return monitoringRequests, res.Error
 		}
 
 		// фильтрация по статусу, startDate и endDate
-		res := r.db.Where("status = ?", status).Where("creation_date BETWEEN ? AND ?", startDate, endDate).
+		res := r.db.Where("status = ?", status).Where("formation_date BETWEEN ? AND ?", startDate, endDate).
 			Find(&monitoringRequests)
 		return monitoringRequests, res.Error
 	}
@@ -47,20 +47,20 @@ func (r *Repository) GetMonitoringRequests(status string, startDate, endDate tim
 		}
 
 		// фильтрация по endDate
-		res := r.db.Where("creation_date < ?", endDate).
+		res := r.db.Where("formation_date < ?", endDate).
 			Find(&monitoringRequests)
 		return monitoringRequests, res.Error
 	}
 
 	if endDate.IsZero() {
 		// фильтрация по startDate
-		res := r.db.Where("creation_date > ?", startDate).
+		res := r.db.Where("formation_date > ?", startDate).
 			Find(&monitoringRequests)
 		return monitoringRequests, res.Error
 	}
 
 	//фильтрация по startDate и endDate
-	res := r.db.Where("creation_date BETWEEN ? AND ?", startDate, endDate).
+	res := r.db.Where("formation_date BETWEEN ? AND ?", startDate, endDate).
 		Find(&monitoringRequests)
 	return monitoringRequests, res.Error
 }
