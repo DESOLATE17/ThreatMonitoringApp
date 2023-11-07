@@ -55,9 +55,9 @@ func (h *Handler) GetMonitoringRequestById(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err)
 		return
 	}
-	request, threats, err := h.repo.GetMonitoringRequestById(id)
+	request, threats, err := h.repo.GetMonitoringRequestById(id, c.GetInt(userCtx), c.GetBool(adminCtx))
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "такая заявка не найдена"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"request": request, "threats": threats})
@@ -73,7 +73,7 @@ func (h *Handler) AddThreatToRequest(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err)
 		return
 	}
-	request.CreatorId = models.GetClientId()
+	request.CreatorId = c.GetInt(userCtx)
 
 	if request.ThreatId == 0 {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "услуга не может быть пустой"})
@@ -92,7 +92,7 @@ func (h *Handler) AddThreatToRequest(c *gin.Context) {
 
 // логически удаляет заявку
 func (h *Handler) DeleteMonitoringRequest(c *gin.Context) {
-	userId := models.GetClientId()
+	userId := c.GetInt(userCtx)
 	err := h.repo.DeleteMonitoringRequest(userId)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
@@ -115,7 +115,7 @@ func (h *Handler) UpdateMonitoringRequestClient(c *gin.Context) {
 		return
 	}
 
-	err = h.repo.UpdateMonitoringRequestClient(models.GetClientId(), newRequestStatus.Status)
+	err = h.repo.UpdateMonitoringRequestClient(c.GetInt(userCtx), newRequestStatus.Status)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
@@ -132,11 +132,19 @@ func (h *Handler) UpdateMonitoringRequestAdmin(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
 	}
+
+	idStr := c.Param("requestId")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, err)
+		return
+	}
+
 	if newRequestStatus.Status != "accepted" && newRequestStatus.Status != "canceled" && newRequestStatus.Status != "closed" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Поменять статус можно только на 'accepted, 'closed' и 'canceled'"})
 		return
 	}
-	err = h.repo.UpdateMonitoringRequestAdmin(models.GetClientId(), newRequestStatus.Status)
+	err = h.repo.UpdateMonitoringRequestAdmin(c.GetInt(userCtx), id, newRequestStatus.Status)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
@@ -153,7 +161,7 @@ func (h *Handler) DeleteThreatFromRequest(c *gin.Context) {
 		return
 	}
 
-	userId := models.GetClientId()
+	userId := c.GetInt(userCtx)
 
 	request, threats, err := h.repo.DeleteThreatFromRequest(userId, threatId)
 	if err != nil {

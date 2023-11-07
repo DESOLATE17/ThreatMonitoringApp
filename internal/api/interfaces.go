@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"threat-monitoring/internal/models"
 	"time"
 )
@@ -15,13 +16,14 @@ type Repo interface {
 	DeleteThreatImage(threatId int) string
 
 	GetMonitoringRequests(status string, startDate, endDate time.Time) ([]models.MonitoringRequest, error)
-	GetMonitoringRequestById(requestId int) (models.MonitoringRequest, []models.Threat, error)
+	GetMonitoringRequestById(requestId int, userId int, isAdmin bool) (models.MonitoringRequest, []models.Threat, error)
 	DeleteMonitoringRequest(id int) error
 	UpdateMonitoringRequestClient(id int, status string) error
-	UpdateMonitoringRequestAdmin(id int, status string) error
+	UpdateMonitoringRequestAdmin(adminId int, requestId int, status string) error
 	GetMonitoringRequestDraft(userId int) (int, error)
 
 	DeleteThreatFromRequest(userId, threatId int) (models.MonitoringRequest, []models.Threat, error)
 
-	Register(newUser models.User) error
+	SignUp(ctx context.Context, newUser models.User) error
+	GetByCredentials(ctx context.Context, user models.User) (models.User, error)
 }

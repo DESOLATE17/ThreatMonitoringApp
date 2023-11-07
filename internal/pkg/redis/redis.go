@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"log"
 	"os"
 	"strconv"
 	"time"
@@ -36,12 +38,19 @@ type RedisClient struct {
 }
 
 type Client interface {
+	CheckJWTInBlacklist(ctx context.Context, jwtStr string) error
+	WriteJWTToBlacklist(ctx context.Context, jwtStr string, jwtTTL time.Duration) error
 }
 
 func InitRedisConfig(vp *viper.Viper, logger *logrus.Logger) RedisConfig {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	port, err := strconv.Atoi(os.Getenv(envRedisPort))
 	if err != nil {
-		logger.Fatal("redis port must be int value")
+		logger.Fatal("redis port must be int value ")
 		return RedisConfig{}
 	}
 

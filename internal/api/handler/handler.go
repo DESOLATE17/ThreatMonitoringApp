@@ -7,23 +7,30 @@ import (
 	"github.com/spf13/viper"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
+	"os"
 	_ "threat-monitoring/docs"
 	"threat-monitoring/internal/api"
 	"threat-monitoring/internal/api/repository"
 	"threat-monitoring/internal/models"
+	"threat-monitoring/internal/pkg/auth"
+	"threat-monitoring/internal/pkg/hash"
 	minio "threat-monitoring/internal/pkg/minio"
 	redis "threat-monitoring/internal/pkg/redis"
 )
 
 type Handler struct {
-	repo   api.Repo
-	minio  minio.Client
-	redis  redis.Client
 	logger *logrus.Entry
+
+	minio minio.Client
+	redis redis.Client
+	repo  api.Repo
+
+	hasher       hash.PasswordHasher
+	tokenManager auth.TokenManager
 }
 
 func initConfig(vp *viper.Viper) error {
-	vp.AddConfigPath("./config")
+	vp.AddConfigPath("/home/dasha/GolandProjects/WebAppDevelopment/ThreatMonitoringApp/config")
 	vp.SetConfigName("config")
 
 	return vp.ReadInConfig()
@@ -54,11 +61,18 @@ func NewHandler(logger *logrus.Logger) *Handler {
 		logger.Fatalln(err)
 	}
 
+	tokenManager, err := auth.NewManager(os.Getenv("TOKEN_SECRET"))
+	if err != nil {
+		logger.Fatalln(err)
+	}
+
 	return &Handler{
-		repo:   repo,
-		minio:  minioClient,
-		logger: logger.WithField("component", "handler"),
-		redis:  redisClient,
+		repo:         repo,
+		minio:        minioClient,
+		logger:       logger.WithField("component", "handler"),
+		redis:        redisClient,
+		hasher:       hash.NewSHA256Hasher(os.Getenv("SALT")),
+		tokenManager: tokenManager,
 	}
 }
 
@@ -72,26 +86,26 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	// услуги - угрозы
 	r.GET("/threats", h.GetThreatsList)
 	r.GET("/threats/:id", h.GetThreatById)
-	r.Use(h.WithAuthCheck(models.Admin)).DELETE("/threats/:id", h.DeleteThreat)
-	r.Use(h.WithAuthCheck(models.Admin)).POST("/threats", h.AddThreat)
-	r.Use(h.WithAuthCheck(models.Admin)).PUT("/threats/:id", h.UpdateThreat)
-	r.Use(h.WithAuthCheck(models.Client)).POST("/threats/request", h.AddThreatToRequest)
+	r.DELETE("/threats/:id", h.WithAuthCheck([]models.Role{models.Admin}), h.DeleteThreat)
+	r.POST("/threats", h.WithAuthCheck([]models.Role{models.Admin}), h.AddThreat)
+	r.PUT("/threats/:id", h.WithAuthCheck([]models.Role{models.Admin}), h.UpdateThreat)
+	r.POST("/threats/request", h.WithAuthCheck([]models.Role{models.Client}), h.AddThreatToRequest)
 
 	// заявки - мониторинг угроз
-	r.Use(h.WithAuthCheck(models.Admin)).GET("/monitoring-requests", h.GetMonitoringRequestsList)
-	// разный доступ, у админа к любой, у юзера только к своей ???
-	r.GET("/monitoring-requests/:id", h.GetMonitoringRequestById)
-	r.Use(h.WithAuthCheck(models.Client)).DELETE("/monitoring-requests", h.DeleteMonitoringRequest)
-	r.Use(h.WithAuthCheck(models.Client)).PUT("/monitoring-requests/client", h.UpdateMonitoringRequestClient)
-	// важно id admin
-	r.Use(h.WithAuthCheck(models.Admin)).PUT("/monitoring-requests/admin", h.UpdateMonitoringRequestAdmin)
+	r.GET("/monitoring-requests", h.WithAuthCheck([]models.Role{models.Admin}), h.GetMonitoringRequestsList)
+	// разный доступ, у админа к любой, у юзера только к своей
+	r.GET("/monitoring-requests/:id", h.WithAuthCheck([]models.Role{models.Client, models.Admin}), h.GetMonitoringRequestById)
+	r.DELETE("/monitoring-requests", h.WithAuthCheck([]models.Role{models.Client}), h.DeleteMonitoringRequest)
+	r.PUT("/monitoring-requests/client", h.WithAuthCheck([]models.Role{models.Client}), h.UpdateMonitoringRequestClient)
+	r.PUT("/monitoring-requests/admin/:requestId", h.WithAuthCheck([]models.Role{models.Admin}), h.UpdateMonitoringRequestAdmin)
 
 	// м-м
 
-	r.Use(h.WithAuthCheck(models.Client)).DELETE("/monitoring-request-threats/threats/:threatId", h.DeleteThreatFromRequest)
+	r.DELETE("/monitoring-request-threats/threats/:threatId", h.WithAuthCheck([]models.Role{models.Client}), h.DeleteThreatFromRequest)
 
 	// авторизация и регистрация
-	r.POST("/login", h.Login)
-	r.POST("/sign_up", h.Register)
+	r.POST("/login", h.SignIn)
+	r.POST("/sign_up", h.SignUp)
+	r.POST("/logout", h.Logout)
 	return r
 }

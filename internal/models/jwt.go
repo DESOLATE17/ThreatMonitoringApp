@@ -6,8 +6,8 @@ import (
 
 type JwtClaims struct {
 	jwt.StandardClaims
-	UserId  int
-	IsAdmin bool
+	UserId  int  `json:"userId"`
+	IsAdmin bool `json:"isAdmin"`
 }
 
 type Role int

@@ -1,20 +1,29 @@
 package handler
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
+	"github.com/go-redis/redis/v8"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"threat-monitoring/internal/models"
 )
 
-const jwtPrefix = "Bearer "
+const (
+	jwtPrefix = "Bearer "
+	userCtx   = "UserId"
+	adminCtx  = "IsAdmin"
+)
 
-func (h *Handler) WithAuthCheck(assignedRole models.Role) func(ctx *gin.Context) {
+func (h *Handler) WithAuthCheck(assignedRoles []models.Role) func(ctx *gin.Context) {
 	return func(gCtx *gin.Context) {
-		jwtStr := gCtx.GetHeader("Authorization")
+		jwtStr, err := gCtx.Cookie("AccessToken")
+		if err != nil {
+			gCtx.AbortWithStatus(http.StatusForbidden) // отдаем что нет доступа
+			return
+		}
+
 		if !strings.HasPrefix(jwtStr, jwtPrefix) { // если нет префикса то нас дурят!
 			gCtx.AbortWithStatus(http.StatusForbidden) // отдаем что нет доступа
 			return
@@ -22,23 +31,32 @@ func (h *Handler) WithAuthCheck(assignedRole models.Role) func(ctx *gin.Context)
 
 		jwtStr = jwtStr[len(jwtPrefix):]
 
-		token, err := jwt.ParseWithClaims(jwtStr, &models.JwtClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("TOKEN_SECRET")), nil
-		})
-		if err != nil {
+		err = h.redis.CheckJWTInBlacklist(gCtx.Request.Context(), jwtStr)
+		if err == nil { // значит что токен в блеклисте
 			gCtx.AbortWithStatus(http.StatusForbidden)
-			log.Println(err)
+
+			return
+		}
+		if !errors.Is(err, redis.Nil) {
+			gCtx.AbortWithError(http.StatusInternalServerError, err)
 
 			return
 		}
 
-		myClaims := token.Claims.(*models.JwtClaims)
+		h.tokenManager.Parse(jwtStr)
 
-		if !myClaims.IsAdmin && assignedRole == 1 || myClaims.IsAdmin && assignedRole == 0 {
-			gCtx.AbortWithStatus(http.StatusForbidden)
-			log.Printf("user %v is not admin", myClaims.UserId)
+		userId, isAdmin, err := h.tokenManager.Parse(jwtStr)
 
-			return
+		if len(assignedRoles) == 1 {
+			if !isAdmin && assignedRoles[0] == 1 || isAdmin && assignedRoles[0] == 0 {
+				gCtx.AbortWithStatus(http.StatusForbidden)
+				log.Printf("user %v is not admin", userId)
+				return
+			}
 		}
+
+		gCtx.Set(userCtx, userId)
+		gCtx.Set(adminCtx, isAdmin)
+		gCtx.Next()
 	}
 }

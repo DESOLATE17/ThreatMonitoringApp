@@ -66,7 +66,7 @@ func (r *Repository) GetMonitoringRequests(status string, startDate, endDate tim
 }
 
 // вывод одной заявки со списком её услуг
-func (r *Repository) GetMonitoringRequestById(requestId int) (models.MonitoringRequest, []models.Threat, error) {
+func (r *Repository) GetMonitoringRequestById(requestId int, userId int, isAdmin bool) (models.MonitoringRequest, []models.Threat, error) {
 	var monitoringRequest models.MonitoringRequest
 	var threats []models.Threat
 
@@ -76,16 +76,21 @@ func (r *Repository) GetMonitoringRequestById(requestId int) (models.MonitoringR
 		r.logger.Error("error while getting monitoring request")
 		return models.MonitoringRequest{}, nil, result.Error
 	}
-	//ищем услуги в заявке
-	res := r.db.
-		Table("monitoring_requests_threats").
-		Select("threats.*").
-		Joins("JOIN threats ON monitoring_requests_threats.threat_id = threats.threat_id").
-		Where("monitoring_requests_threats.request_id = ?", requestId).
-		Find(&threats)
-	if res.Error != nil {
-		r.logger.Error("error while getting threats for monitoring requests")
-		return models.MonitoringRequest{}, nil, res.Error
+
+	if !isAdmin && monitoringRequest.CreatorId == userId || isAdmin {
+		//ищем услуги в заявке
+		res := r.db.
+			Table("monitoring_requests_threats").
+			Select("threats.*").
+			Joins("JOIN threats ON monitoring_requests_threats.threat_id = threats.threat_id").
+			Where("monitoring_requests_threats.request_id = ?", requestId).
+			Find(&threats)
+		if res.Error != nil {
+			r.logger.Error("error while getting threats for monitoring requests")
+			return models.MonitoringRequest{}, nil, res.Error
+		}
+	} else {
+		return models.MonitoringRequest{}, nil, errors.New("ошибка доступа к данной заявке")
 	}
 
 	return monitoringRequest, threats, nil
@@ -170,16 +175,17 @@ func (r *Repository) GetMonitoringRequestDraft(userId int) (int, error) {
 }
 
 // изменение статуса модератора
-func (r *Repository) UpdateMonitoringRequestAdmin(id int, status string) error {
+func (r *Repository) UpdateMonitoringRequestAdmin(adminId int, requestId int, status string) error {
 	var monitoringRequest models.MonitoringRequest
 
-	err := r.db.First(&monitoringRequest, "creator_id = ? and status = 'formated'", id)
+	err := r.db.First(&monitoringRequest, "request_id = ? and status = 'formated'", requestId)
 	if err.Error != nil {
 		r.logger.Error("error while getting monitoring request")
 		return err.Error
 	}
 
 	monitoringRequest.Status = status
+	monitoringRequest.AdminId = adminId
 	res := r.db.Save(&monitoringRequest)
 
 	return res.Error
@@ -207,5 +213,5 @@ func (r *Repository) DeleteThreatFromRequest(userId, threatId int) (models.Monit
 		return models.MonitoringRequest{}, nil, err
 	}
 
-	return r.GetMonitoringRequestById(request.RequestId)
+	return r.GetMonitoringRequestById(request.RequestId, userId, false)
 }

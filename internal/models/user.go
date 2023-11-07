@@ -1,17 +1,15 @@
 package models
 
 import (
-	"github.com/golang-jwt/jwt"
-	"github.com/google/uuid"
 	"time"
 )
 
 type User struct {
-	UserId           int `gorm:"primaryKey"`
-	Login            string
+	UserId           int    `gorm:"primaryKey"`
+	Login            string `json:"login" binding:"required,max=64"`
 	IsAdmin          bool
-	Name             string
-	PasswordHash     string
+	Name             string `json:"name"`
+	Password         string `json:"password" binding:"required,min=8,max=64"`
 	RegistrationDate time.Time
 }
 
@@ -21,15 +19,4 @@ func GetClientId() int {
 
 func GetAdminId() int {
 	return 2
-}
-
-type loginRequest struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
-}
-
-type JWTClaims struct {
-	jwt.StandardClaims           // все что точно необходимо по RFC
-	UserUUID           uuid.UUID `json:"user_uuid"`            // наши данные - uuid этого пользователя в базе данных
-	Scopes             []string  `json:"scopes" json:"scopes"` // список доступов в нашей системе
 }

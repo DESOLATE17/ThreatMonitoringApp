@@ -1,9 +1,9 @@
-INSERT INTO "users"(login, is_admin, name, password_hash)
-VALUES ('Ivan123', false, 'Иван Иванов',
-        '781be5ea6620295cbdb249154b840fbe2327d87c666d8e76b29f45f70fcf7d6d');
-INSERT INTO "users"(login, is_admin, name, password_hash)
-VALUES ('Dasha2003', true, 'Дарья Такташова',
-        '781be5ea6620295cbdb249154b840fbe2327d87c666d8e76b29f45f70fcf7d6d');
+-- INSERT INTO "users"(login, is_admin, name, password)
+-- VALUES ('Ivan123', false, 'Иван Иванов',
+--         '781be5ea6620295cbdb249154b840fbe2327d87c666d8e76b29f45f70fcf7d6d');
+-- INSERT INTO "users"(login, is_admin, name, password)
+-- VALUES ('Dasha2003', true, 'Дарья Такташова',
+--         '781be5ea6620295cbdb249154b840fbe2327d87c666d8e76b29f45f70fcf7d6d');
 
 --threats
 INSERT INTO threats(name, description, image, count, is_deleted, price)

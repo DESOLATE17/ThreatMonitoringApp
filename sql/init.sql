@@ -12,7 +12,7 @@ create table "users"
     login             varchar(40)             not null,
     is_admin          boolean   default false,
     name              varchar(40)             not null,
-    password_hash     varchar(64)             not null,
+    password          varchar(64)             not null,
     registration_date timestamp default now() not null
 );
 --таблица услуг
@@ -23,8 +23,8 @@ create table threats
             primary key,
     name        varchar(60)   not null,
     description TEXT          not null,
-    image       TEXT   not null,
-    count       int default 0,
+    image       TEXT          not null,
+    count       int                    default 0,
     is_deleted  boolean       not null default FALSE,
     price       int
 );
@@ -58,4 +58,6 @@ create table monitoring_requests_threats
     unique (request_id, threat_id)
 );
 
-SELECT * FROM threats WHERE threat_id=6;
+SELECT *
+FROM threats
+WHERE threat_id = 6;
