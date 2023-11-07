@@ -105,7 +105,7 @@ func (r *Repository) AddThreatToRequest(request models.MonitoringRequestCreateMe
 	if monitoringRequest.RequestId == 0 {
 		newMonitoringRequest := models.MonitoringRequest{
 			CreatorId:    request.CreatorId,
-			AdminId:      models.GetAdminId(),
+			AdminId:      0,
 			Status:       "created",
 			CreationDate: time.Now(),
 		}

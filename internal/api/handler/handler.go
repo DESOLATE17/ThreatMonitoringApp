@@ -89,7 +89,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	r.DELETE("/threats/:id", h.WithAuthCheck([]models.Role{models.Admin}), h.DeleteThreat)
 	r.POST("/threats", h.WithAuthCheck([]models.Role{models.Admin}), h.AddThreat)
 	r.PUT("/threats/:id", h.WithAuthCheck([]models.Role{models.Admin}), h.UpdateThreat)
-	r.POST("/threats/request", h.WithAuthCheck([]models.Role{models.Client}), h.AddThreatToRequest)
+	r.POST("/threats/request/:threatId", h.WithAuthCheck([]models.Role{models.Client}), h.AddThreatToRequest)
 
 	// заявки - мониторинг угроз
 	r.GET("/monitoring-requests", h.WithAuthCheck([]models.Role{models.Admin}), h.GetMonitoringRequestsList)
@@ -104,8 +104,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	r.DELETE("/monitoring-request-threats/threats/:threatId", h.WithAuthCheck([]models.Role{models.Client}), h.DeleteThreatFromRequest)
 
 	// авторизация и регистрация
-	r.POST("/login", h.SignIn)
-	r.POST("/sign_up", h.SignUp)
+	r.POST("/signIn", h.SignIn)
+	r.POST("/signUp", h.SignUp)
 	r.POST("/logout", h.Logout)
 	return r
 }

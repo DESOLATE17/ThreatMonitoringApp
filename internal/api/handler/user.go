@@ -11,8 +11,20 @@ import (
 	"time"
 )
 
+// SignUp godoc
+// @Summary      Sign up a new user
+// @Description  Creates a new user account
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        user  body  models.UserSignUp  true  "User information"
+// @Success      201  {object}  map[string]any
+// @Failure      400  {object}  error
+// @Failure      409  {object}  error
+// @Failure      500  {object}  error
+// @Router       /signUp [post]
 func (h *Handler) SignUp(c *gin.Context) {
-	var newClient models.User
+	var newClient models.UserSignUp
 	var err error
 
 	if err = c.BindJSON(&newClient); err != nil {
@@ -25,22 +37,33 @@ func (h *Handler) SignUp(c *gin.Context) {
 		return
 	}
 
-	if err = h.repo.SignUp(c.Request.Context(), newClient); err != nil {
-		if errors.Is(err, models.ErrClientAlreadyExists) {
-			c.AbortWithStatusJSON(http.StatusConflict, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err = h.repo.SignUp(c.Request.Context(), models.User{
+		Login:    newClient.Login,
+		Name:     newClient.Name,
+		Password: newClient.Password,
+	}); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "нельзя создать пользователя с таким логином"})
 
 		return
 	}
 
-	c.Status(http.StatusCreated)
+	c.JSON(http.StatusCreated, gin.H{"message": "пользователь успешно создан"})
 }
 
+// SignIn godoc
+// @Summary      User sign-in
+// @Description  Authenticates a user and generates an access token
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        user  body  models.UserLogin  true  "User information"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  error
+// @Failure      401  {object}  error
+// @Failure      500  {object}  error
+// @Router       /signIn [post]
 func (h *Handler) SignIn(c *gin.Context) {
-	var clientInfo models.User
+	var clientInfo models.UserLogin
 	var err error
 
 	if err = c.BindJSON(&clientInfo); err != nil {
@@ -53,7 +76,7 @@ func (h *Handler) SignIn(c *gin.Context) {
 		return
 	}
 
-	user, err := h.repo.GetByCredentials(c.Request.Context(), clientInfo)
+	user, err := h.repo.GetByCredentials(c.Request.Context(), models.User{Password: clientInfo.Password, Login: clientInfo.Login})
 	if err != nil {
 		if errors.Is(err, models.ErrUserNotFound) {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
@@ -74,6 +97,15 @@ func (h *Handler) SignIn(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "клиент успешно авторизован"})
 }
 
+// Logout godoc
+// @Summary      Logout
+// @Description  Logs out the user by blacklisting the access token
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Success      200
+// @Failure      400
+// @Router       /logout [post]
 func (h *Handler) Logout(c *gin.Context) {
 	jwtStr, err := c.Cookie("AccessToken")
 	if !strings.HasPrefix(jwtStr, jwtPrefix) || err != nil { // если нет префикса то нас дурят!

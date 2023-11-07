@@ -22,3 +22,7 @@ type MonitoringRequestsThreats struct {
 	RequestId int
 	ThreatId  int
 }
+
+type NewStatus struct {
+	Status string `json:"status"`
+}

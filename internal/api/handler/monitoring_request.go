@@ -8,7 +8,19 @@ import (
 	"time"
 )
 
-// список заявок
+// GetMonitoringRequestsList godoc
+// @Summary      Get list of monitoring requests
+// @Description  Retrieves a list of monitoring requests based on the provided parameters
+// @Tags         MonitoringRequests
+// @Accept       json
+// @Produce      json
+// @Param        status      query  string    false  "Monitoring request status"
+// @Param        start_date  query  string    false  "Start date in the format '2006-01-02T15:04:05Z'"
+// @Param        end_date    query  string    false  "End date in the format '2006-01-02T15:04:05Z'"
+// @Success      200  {object}  []models.MonitoringRequest
+// @Failure      400  {object}  error
+// @Failure      500  {object}  error
+// @Router       /monitoring-requests [get]
 func (h *Handler) GetMonitoringRequestsList(c *gin.Context) {
 	status := c.Query("status")
 	startDateStr := c.Query("start_date")
@@ -47,7 +59,16 @@ func (h *Handler) GetMonitoringRequestsList(c *gin.Context) {
 	c.JSON(http.StatusOK, monitoringRequests)
 }
 
-// получение заявки по id с информацией об услуге
+// GetMonitoringRequestById godoc
+// @Summary      Get monitoring request by ID
+// @Description  Retrieves a monitoring request with the given ID
+// @Tags         MonitoringRequests
+// @Accept       json
+// @Produce      json
+// @Param        id  path  int  true  "Monitoring Request ID"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  error
+// @Router       /monitoring-requests/{id} [get]
 func (h *Handler) GetMonitoringRequestById(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -64,16 +85,28 @@ func (h *Handler) GetMonitoringRequestById(c *gin.Context) {
 	return
 }
 
-// добавляем услугу в заявку (или создаем новую заявку и добавляем в нее услугу)
+// AddThreatToRequest godoc
+// @Summary      Add threat to request
+// @Description  Adds a threat to a monitoring request
+// @Tags         Threats
+// @Accept       json
+// @Produce      json
+// @Param        threatId  path  int  true  "Threat ID"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  error
+// @Router       /threats/request/{threatId} [post]
 func (h *Handler) AddThreatToRequest(c *gin.Context) {
 	var request models.MonitoringRequestCreateMessage
+	var err error
 
-	err := c.BindJSON(&request)
+	request.CreatorId = c.GetInt(userCtx)
+	idStr := c.Param("threatId")
+	request.ThreatId, err = strconv.Atoi(idStr)
 	if err != nil {
+		h.logger.Error(err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, err)
 		return
 	}
-	request.CreatorId = c.GetInt(userCtx)
 
 	if request.ThreatId == 0 {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "услуга не может быть пустой"})
@@ -90,7 +123,16 @@ func (h *Handler) AddThreatToRequest(c *gin.Context) {
 	return
 }
 
-// логически удаляет заявку
+// DeleteMonitoringRequest godoc
+// @Summary      Delete monitoring request by user ID
+// @Description  Deletes a monitoring request for the given user ID
+// @Tags         MonitoringRequests
+// @Accept       json
+// @Produce      json
+// @Param        user_id  path  int  true  "User ID"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  error
+// @Router       /monitoring-requests [delete]
 func (h *Handler) DeleteMonitoringRequest(c *gin.Context) {
 	userId := c.GetInt(userCtx)
 	err := h.repo.DeleteMonitoringRequest(userId)
@@ -101,9 +143,18 @@ func (h *Handler) DeleteMonitoringRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "заявка успешно удалена"})
 }
 
-// изменяет статус клиента в заявке
+// UpdateMonitoringRequestClient godoc
+// @Summary      Update monitoring request status by client
+// @Description  Updates the status of a monitoring request by client on formated
+// @Tags         MonitoringRequests
+// @Accept       json
+// @Produce      json
+// @Param        newStatus    body    models.NewStatus  true    "New status of the monitoring request"
+// @Success      200          {object}  map[string]string
+// @Failure      400          {object}  error
+// @Router       /monitoring-requests/client [put]
 func (h *Handler) UpdateMonitoringRequestClient(c *gin.Context) {
-	var newRequestStatus models.MonitoringRequest
+	var newRequestStatus models.NewStatus
 	err := c.BindJSON(&newRequestStatus)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
@@ -124,9 +175,19 @@ func (h *Handler) UpdateMonitoringRequestClient(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Статус изменен"})
 }
 
-// изменяет статус администратором в заявке
+// UpdateMonitoringRequestAdmin godoc
+// @Summary      Update monitoring request status by ID
+// @Description  Updates the status of a monitoring request with the given ID on "accepted"/"closed"/"canceled"
+// @Tags         MonitoringRequests
+// @Accept       json
+// @Produce      json
+// @Param        requestId  path  int  true  "Request ID"
+// @Param        newRequestStatus  body  models.NewStatus  true  "New request status"
+// @Success      200  {object}  map[string]any
+// @Failure      400  {object}  error
+// @Router       /monitoring-requests/admin/{requestId} [put]
 func (h *Handler) UpdateMonitoringRequestAdmin(c *gin.Context) {
-	var newRequestStatus models.MonitoringRequest
+	var newRequestStatus models.NewStatus
 	err := c.BindJSON(&newRequestStatus)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
@@ -153,6 +214,16 @@ func (h *Handler) UpdateMonitoringRequestAdmin(c *gin.Context) {
 	return
 }
 
+// DeleteThreatFromRequest godoc
+// @Summary      Delete threat from request
+// @Description  Deletes a threat from a request based on the user ID and threat ID
+// @Tags         MonitoringRequests
+// @Accept       json
+// @Produce      json
+// @Param        threatId  path  int  true  "Threat ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  error
+// @Router       /monitoring-request-threats/threats/{threatId} [delete]
 func (h *Handler) DeleteThreatFromRequest(c *gin.Context) {
 	threatIdStr := c.Param("threatId")
 	threatId, err := strconv.Atoi(threatIdStr)

@@ -53,7 +53,7 @@ func (h *Handler) GetThreatsList(c *gin.Context) {
 		return
 	}
 
-	requestId, err := h.repo.GetMonitoringRequestDraft(models.GetClientId())
+	requestId, err := h.repo.GetMonitoringRequestDraft(c.GetInt(userCtx))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
@@ -74,7 +74,7 @@ func (h *Handler) GetThreatsList(c *gin.Context) {
 // @Param        id   path    int     true        "Threat ID"
 // @Success      200  {object}  models.Threat
 // @Failure      400  {object}  error
-// @Router       /threat/{id} [get]
+// @Router       /threats/{id} [get]
 func (h *Handler) GetThreatById(c *gin.Context) {
 	cardId := c.Param("id")
 	id, err := strconv.Atoi(cardId)
@@ -151,7 +151,21 @@ func (h *Handler) AddThreat(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "новая услуга успешно добавлена"})
 }
 
-// изменяет данные про угрозу
+// UpdateThreat godoc
+// @Summary      Update threat by ID
+// @Description  Updates a threat with the given ID
+// @Tags         Threats
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        id          path        int     true        "ID"
+// @Param        name        formData    string  false       "name"
+// @Param        description formData    string  false       "description"
+// @Param        count       formData    string  false       "count"
+// @Param        price       formData    string  false       "price"
+// @Param        image       formData    file    false       "image"
+// @Success      200         {object}    map[string]any
+// @Failure      400         {object}    error
+// @Router       /threats/{id} [put]
 func (h *Handler) UpdateThreat(c *gin.Context) {
 	file, header, err := c.Request.FormFile("image")
 

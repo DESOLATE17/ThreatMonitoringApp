@@ -9,7 +9,7 @@ create table "users"
     user_id           SERIAL unique           not null
         constraint user_pk
             primary key,
-    login             varchar(40)             not null,
+    login             varchar(40)             not null UNIQUE,
     is_admin          boolean   default false,
     name              varchar(40)             not null,
     password          varchar(64)             not null,
@@ -42,8 +42,6 @@ create table monitoring_requests
     formation_date timestamp,
     ending_date    timestamp,
     admin_id       int
-        constraint monitoring_request_user_id_fk
-            references "users" (user_id)
 );
 -- таблица связи м:м
 create table monitoring_requests_threats
