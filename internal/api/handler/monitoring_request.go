@@ -50,7 +50,7 @@ func (h *Handler) GetMonitoringRequestsList(c *gin.Context) {
 		}
 	}
 
-	monitoringRequests, err := h.repo.GetMonitoringRequests(status, startDate, endDate)
+	monitoringRequests, err := h.repo.GetMonitoringRequests(status, startDate, endDate, c.GetInt(userCtx), c.GetBool(adminCtx))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return

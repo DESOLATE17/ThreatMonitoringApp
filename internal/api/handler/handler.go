@@ -92,7 +92,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	r.POST("/threats/request/:threatId", h.WithAuthCheck([]models.Role{models.Client}), h.AddThreatToRequest)
 
 	// заявки - мониторинг угроз
-	r.GET("/monitoring-requests", h.WithAuthCheck([]models.Role{models.Admin}), h.GetMonitoringRequestsList)
+	r.GET("/monitoring-requests", h.WithAuthCheck([]models.Role{models.Admin, models.Client}), h.GetMonitoringRequestsList)
 	// разный доступ, у админа к любой, у юзера только к своей
 	r.GET("/monitoring-requests/:id", h.WithAuthCheck([]models.Role{models.Client, models.Admin}), h.GetMonitoringRequestById)
 	r.DELETE("/monitoring-requests", h.WithAuthCheck([]models.Role{models.Client}), h.DeleteMonitoringRequest)

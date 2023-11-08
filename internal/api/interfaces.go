@@ -15,7 +15,7 @@ type Repo interface {
 	AddThreatToRequest(request models.MonitoringRequestCreateMessage) error
 	DeleteThreatImage(threatId int) string
 
-	GetMonitoringRequests(status string, startDate, endDate time.Time) ([]models.MonitoringRequest, error)
+	GetMonitoringRequests(status string, startDate, endDate time.Time, userId int, isAdmin bool) ([]models.MonitoringRequest, error)
 	GetMonitoringRequestById(requestId int, userId int, isAdmin bool) (models.MonitoringRequest, []models.Threat, error)
 	DeleteMonitoringRequest(id int) error
 	UpdateMonitoringRequestClient(id int, status string) error
