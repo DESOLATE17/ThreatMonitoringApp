@@ -1,0 +1,514 @@
+basePath: /
+definitions:
+  models.MonitoringRequest:
+    properties:
+      adminId:
+        type: integer
+      creationDate:
+        type: string
+      endingDate:
+        type: string
+      formationDate:
+        type: string
+      requestId:
+        type: integer
+      status:
+        type: string
+      userId:
+        type: integer
+    type: object
+  models.NewStatus:
+    properties:
+      status:
+        type: string
+    type: object
+  models.Threat:
+    properties:
+      count:
+        type: integer
+      description:
+        type: string
+      image:
+        type: string
+      name:
+        type: string
+      price:
+        type: integer
+      threatId:
+        type: integer
+    type: object
+  models.UserLogin:
+    properties:
+      login:
+        maxLength: 64
+        type: string
+      password:
+        maxLength: 64
+        minLength: 8
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  models.UserSignUp:
+    properties:
+      login:
+        maxLength: 64
+        type: string
+      name:
+        type: string
+      password:
+        maxLength: 64
+        minLength: 8
+        type: string
+    required:
+    - login
+    - password
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: App for serving threats monitoring requests
+  title: ThreatMonitoringApp
+  version: "1.0"
+paths:
+  /logout:
+    post:
+      consumes:
+      - application/json
+      description: Logs out the user by blacklisting the access token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+      summary: Logout
+      tags:
+      - Authentication
+  /monitoring-request-threats/threats/{threatId}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a threat from a request based on the user ID and threat
+        ID
+      parameters:
+      - description: Threat ID
+        in: path
+        name: threatId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Delete threat from request
+      tags:
+      - MonitoringRequests
+  /monitoring-requests:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a monitoring request for the given user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Delete monitoring request by user ID
+      tags:
+      - MonitoringRequests
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of monitoring requests based on the provided parameters
+      parameters:
+      - description: Monitoring request status
+        in: query
+        name: status
+        type: string
+      - description: Start date in the format '2006-01-02T15:04:05Z'
+        in: query
+        name: start_date
+        type: string
+      - description: End date in the format '2006-01-02T15:04:05Z'
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.MonitoringRequest'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get list of monitoring requests
+      tags:
+      - MonitoringRequests
+  /monitoring-requests/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a monitoring request with the given ID
+      parameters:
+      - description: Monitoring Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Get monitoring request by ID
+      tags:
+      - MonitoringRequests
+  /monitoring-requests/admin/{requestId}:
+    put:
+      consumes:
+      - application/json
+      description: Updates the status of a monitoring request with the given ID on
+        "accepted"/"closed"/"canceled"
+      parameters:
+      - description: Request ID
+        in: path
+        name: requestId
+        required: true
+        type: integer
+      - description: New request status
+        in: body
+        name: newRequestStatus
+        required: true
+        schema:
+          $ref: '#/definitions/models.NewStatus'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Update monitoring request status by ID
+      tags:
+      - MonitoringRequests
+  /monitoring-requests/client:
+    put:
+      consumes:
+      - application/json
+      description: Updates the status of a monitoring request by client on formated
+      parameters:
+      - description: New status of the monitoring request
+        in: body
+        name: newStatus
+        required: true
+        schema:
+          $ref: '#/definitions/models.NewStatus'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Update monitoring request status by client
+      tags:
+      - MonitoringRequests
+  /signIn:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and generates an access token
+      parameters:
+      - description: User information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: User sign-in
+      tags:
+      - Authentication
+  /signUp:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account
+      parameters:
+      - description: User information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserSignUp'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "409":
+          description: Conflict
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Sign up a new user
+      tags:
+      - Authentication
+  /threats:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of threats based on the provided query.
+      parameters:
+      - description: Query string to filter threats
+        in: query
+        name: query
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get threats list
+      tags:
+      - Threats
+    post:
+      consumes:
+      - multipart/form-data
+      description: Add a new threat with image, name, description, count, and price
+      parameters:
+      - description: Threat image
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Threat name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Threat description
+        in: formData
+        name: description
+        type: string
+      - description: Threat count
+        in: formData
+        name: count
+        required: true
+        type: integer
+      - description: Threat price
+        in: formData
+        name: price
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Add new threat
+      tags:
+      - Threats
+  /threats/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a threat with the given ID
+      parameters:
+      - description: Threat ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Delete threat by ID
+      tags:
+      - Threats
+    get:
+      description: Retrieves a threat by its ID
+      parameters:
+      - description: Threat ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Threat'
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Get threat by ID
+      tags:
+      - Threats
+    put:
+      consumes:
+      - multipart/form-data
+      description: Updates a threat with the given ID
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: name
+        in: formData
+        name: name
+        type: string
+      - description: description
+        in: formData
+        name: description
+        type: string
+      - description: count
+        in: formData
+        name: count
+        type: string
+      - description: price
+        in: formData
+        name: price
+        type: string
+      - description: image
+        in: formData
+        name: image
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Update threat by ID
+      tags:
+      - Threats
+  /threats/request/{threatId}:
+    post:
+      consumes:
+      - application/json
+      description: Adds a threat to a monitoring request
+      parameters:
+      - description: Threat ID
+        in: path
+        name: threatId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Add threat to request
+      tags:
+      - Threats
+schemes:
+- http
+swagger: "2.0"
