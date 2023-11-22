@@ -25,23 +25,24 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	r.Static("/styles", "./styles")
 	r.Static("/image", "./resources")
 	// услуги - угрозы
-	r.GET("/threats", h.GetThreatsList)
-	r.GET("/threats/:id", h.GetThreatById)
-	r.DELETE("/threats/:id", h.DeleteThreat)
-	r.POST("/threats", h.AddThreat)
-	r.PUT("/threats/:id", h.UpdateThreat)
-	r.POST("/threats/request", h.AddThreatToRequest)
+	api := r.Group("/api")
+	api.GET("/threats", h.GetThreatsList)
+	api.GET("/threats/:id", h.GetThreatById)
+	api.DELETE("/threats/:id", h.DeleteThreat)
+	api.POST("/threats", h.AddThreat)
+	api.PUT("/threats/:id", h.UpdateThreat)
+	api.POST("/threats/request", h.AddThreatToRequest)
 
 	// заявки - мониторинг угроз
-	r.GET("/monitoring-requests", h.GetMonitoringRequestsList)
-	r.GET("/monitoring-requests/:id", h.GetMonitoringRequestById)
-	r.DELETE("/monitoring-requests", h.DeleteMonitoringRequest)
-	r.PUT("/monitoring-requests/client", h.UpdateMonitoringRequestClient)
-	r.PUT("/monitoring-requests/:id/admin", h.UpdateMonitoringRequestAdmin)
+	api.GET("/monitoring-requests", h.GetMonitoringRequestsList)
+	api.GET("/monitoring-requests/:id", h.GetMonitoringRequestById)
+	api.DELETE("/monitoring-requests", h.DeleteMonitoringRequest)
+	api.PUT("/monitoring-requests/client", h.UpdateMonitoringRequestClient)
+	api.PUT("/monitoring-requests/:id/admin", h.UpdateMonitoringRequestAdmin)
 
 	// м-м
 
-	r.DELETE("/monitoring-request-threats/threats/:threatId", h.DeleteThreatFromRequest)
+	api.DELETE("/monitoring-request-threats/threats/:threatId", h.DeleteThreatFromRequest)
 
 	return r
 }
