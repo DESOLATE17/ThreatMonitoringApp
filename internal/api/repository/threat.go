@@ -37,13 +37,21 @@ func (r *Repository) UpdateThreat(updateThreat models.Threat) error {
 	return result.Error
 }
 
-func (r *Repository) GetThreatsList(query string) ([]models.Threat, error) {
+func (r *Repository) GetThreatsList(query, lowPrice, highPrice string) ([]models.Threat, error) {
 	threats := make([]models.Threat, 0)
+	if lowPrice == "" {
+		lowPrice = "0"
+	}
+
+	if highPrice == "" {
+		highPrice = "1000000"
+	}
+
 	if query != "" {
-		res := r.db.Where("is_deleted = ?", "False").Where("name LIKE ?", "%"+query+"%").Find(&threats)
+		res := r.db.Where("is_deleted = ?", "False").Where("name LIKE ? AND price BETWEEN ? AND ?", "%"+query+"%", lowPrice, highPrice).Find(&threats)
 		return threats, res.Error
 	}
-	res := r.db.Where("Is_deleted = ?", "False").Find(&threats)
+	res := r.db.Where("Is_deleted = ? AND price BETWEEN ? AND ?", "False", lowPrice, highPrice).Find(&threats)
 	return threats, res.Error
 }
 

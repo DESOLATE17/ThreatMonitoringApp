@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -46,8 +47,27 @@ func (h *Handler) DeleteThreat(c *gin.Context) {
 // @Router       /threats [get]
 func (h *Handler) GetThreatsList(c *gin.Context) {
 	query := c.Query("query")
+	lowPriceStr := c.Query("lowPrice")
+	highPriceStr := c.Query("highPrice")
 
-	threats, err := h.repo.GetThreatsList(query)
+	lowPrice, err := strconv.Atoi(lowPriceStr)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, err)
+		return
+	}
+
+	highPrice, err := strconv.Atoi(highPriceStr)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, err)
+		return
+	}
+
+	if lowPrice > highPrice {
+		c.AbortWithStatusJSON(http.StatusBadRequest, errors.New("неверно заданы параметры фильтрации по цене"))
+		return
+	}
+
+	threats, err := h.repo.GetThreatsList(query, lowPriceStr, highPriceStr)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return

@@ -84,8 +84,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	r.Static("/image", "./resources")
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// услуги - угрозы
-	r.GET("/threats", h.GetThreatsList)
-	r.GET("/threats/:id", h.GetThreatById)
+	r.GET("/api/threats", h.GetThreatsList)
+	r.GET("/api/threats/:id", h.GetThreatById)
 	r.DELETE("/threats/:id", h.WithAuthCheck([]models.Role{models.Admin}), h.DeleteThreat)
 	r.POST("/threats", h.WithAuthCheck([]models.Role{models.Admin}), h.AddThreat)
 	r.PUT("/threats/:id", h.WithAuthCheck([]models.Role{models.Admin}), h.UpdateThreat)

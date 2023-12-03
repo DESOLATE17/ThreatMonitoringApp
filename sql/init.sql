@@ -22,6 +22,7 @@ create table threats
         constraint threat_pk
             primary key,
     name        varchar(60)   not null,
+    summary     TEXT          not null,
     description TEXT          not null,
     image       TEXT          not null,
     count       int                    default 0,

@@ -7,7 +7,7 @@ import (
 )
 
 type Repo interface {
-	GetThreatsList(query string) ([]models.Threat, error)
+	GetThreatsList(query, lowPrice, highPrice string) ([]models.Threat, error)
 	GetThreatByID(threatId int) (models.Threat, error)
 	DeleteThreatByID(threatId int) error
 	AddThreat(newThreat models.Threat) error
