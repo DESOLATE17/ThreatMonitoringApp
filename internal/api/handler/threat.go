@@ -52,14 +52,12 @@ func (h *Handler) GetThreatsList(c *gin.Context) {
 
 	lowPrice, err := strconv.Atoi(lowPriceStr)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err)
-		return
+		lowPrice = 0
 	}
 
 	highPrice, err := strconv.Atoi(highPriceStr)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err)
-		return
+		highPrice = 1000000
 	}
 
 	if lowPrice > highPrice {
