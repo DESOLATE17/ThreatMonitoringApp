@@ -243,3 +243,9 @@ func (r *Repository) DeleteThreatFromRequest(userId, threatId int) (models.Monit
 
 	return r.GetMonitoringRequestById(request.RequestId, userId, false)
 }
+
+func (r *Repository) SavePayment(monitoringRequest models.MonitoringRequest) error {
+	res := r.db.Save(&monitoringRequest)
+
+	return res.Error
+}

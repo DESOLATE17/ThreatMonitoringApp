@@ -107,5 +107,10 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	r.POST("/signIn", h.SignIn)
 	r.POST("/signUp", h.SignUp)
 	r.POST("/logout", h.Logout)
+
+	// асинхронный сервис
+	r.PUT("/monitoring-requests/user-payment-start", h.WithAuthCheck([]models.Role{models.Client}), h.UserPayment) // обращение к асинхронному сервису
+	r.PUT("/monitoring-requests/user-payment-finish", h.FinishUserPayment)                                         // обращение к асинхронному сервису
+
 	return r
 }
