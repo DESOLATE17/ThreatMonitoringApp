@@ -11,6 +11,7 @@ type MonitoringRequest struct {
 	AdminId       int       `json:"adminId"`
 	CreatorId     int       `json:"userId,omitempty"`
 	Creator       string    `json:"creator,omitempty"`
+	Receipt       string    `json:"receipt"`
 }
 
 type MonitoringRequestCreateMessage struct {

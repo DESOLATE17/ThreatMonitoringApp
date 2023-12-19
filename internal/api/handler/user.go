@@ -165,8 +165,8 @@ func (h *Handler) UserPayment(c *gin.Context) {
 
 // ручка вызывается сервисом на python
 func (h *Handler) FinishUserPayment(c *gin.Context) {
-	token, exists := c.Get("Server-Token")
-	if !exists || token != ServerToken {
+	token := c.GetHeader("Server-Token")
+	if token != ServerToken {
 		c.AbortWithError(http.StatusForbidden, errors.New("неверный токен"))
 		return
 	}
