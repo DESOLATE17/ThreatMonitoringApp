@@ -244,8 +244,14 @@ func (r *Repository) DeleteThreatFromRequest(userId, threatId int) (models.Monit
 	return r.GetMonitoringRequestById(request.RequestId, userId, false)
 }
 
-func (r *Repository) SavePayment(monitoringRequest models.MonitoringRequest) error {
-	res := r.db.Save(&monitoringRequest)
-
+func (r *Repository) SavePayment(monitoringRequest models.RequestAsyncService) error {
+	var request models.MonitoringRequest
+	err := r.db.First(&request, "request_id = ?", monitoringRequest.RequestId)
+	if err.Error != nil {
+		r.logger.Error("error while getting monitoring request")
+		return err.Error
+	}
+	request.Receipt = monitoringRequest.Receipt
+	res := r.db.Save(&request)
 	return res.Error
 }

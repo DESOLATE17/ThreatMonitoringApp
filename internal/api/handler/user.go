@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -135,20 +137,29 @@ func (h *Handler) Logout(c *gin.Context) {
 
 const (
 	ServerToken = "abahjsvbdwekvnva"
-	ServiceUrl  = "http://127.0.0.1:8081/addPayment"
+	ServiceUrl  = "http://127.0.0.1:8081/addPayment/"
 )
 
 func (h *Handler) UserPayment(c *gin.Context) {
 	// принимает заявку и отправляет её в сервис
+	var request models.RequestAsyncService
+	if err := c.BindJSON(&request); err != nil {
+		c.AbortWithError(http.StatusBadRequest, errors.New("неверный формат"))
+		return
+	}
+
+	request.Token = ServerToken
+
+	body, _ := json.Marshal(request)
+
 	client := &http.Client{}
-	req, err := http.NewRequest("PUT", ServiceUrl, c.Request.Body)
+	req, err := http.NewRequest("PUT", ServiceUrl, bytes.NewBuffer(body))
 	if err != nil {
 		fmt.Println("Error creating request:", err)
 		return
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Server-Token", ServerToken)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -165,16 +176,15 @@ func (h *Handler) UserPayment(c *gin.Context) {
 
 // ручка вызывается сервисом на python
 func (h *Handler) FinishUserPayment(c *gin.Context) {
-	token := c.GetHeader("Server-Token")
-	if token != ServerToken {
-		c.AbortWithError(http.StatusForbidden, errors.New("неверный токен"))
-		return
-	}
-
-	var request models.MonitoringRequest
+	var request models.RequestAsyncService
 	if err := c.BindJSON(&request); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		log.Println(err)
+		return
+	}
+
+	if request.Token != ServerToken {
+		c.AbortWithError(http.StatusForbidden, errors.New("неверный токен"))
 		return
 	}
 
