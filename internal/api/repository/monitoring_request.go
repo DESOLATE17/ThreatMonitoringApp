@@ -15,6 +15,10 @@ func (r *Repository) GetUsersLoginForRequests(monitoringRequests []models.Monito
 		r.db.Select("login").Where("user_id = ?", monitoringRequests[i].CreatorId).First(&user)
 		monitoringRequests[i].Creator = user.Login
 		fmt.Println(monitoringRequests[i].Creator)
+
+		r.db.Select("login").Where("user_id = ?", monitoringRequests[i].AdminId).First(&user)
+		monitoringRequests[i].Admin = user.Login
+		fmt.Println(monitoringRequests[i].Admin)
 	}
 	return monitoringRequests, nil
 }

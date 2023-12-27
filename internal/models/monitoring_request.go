@@ -9,6 +9,7 @@ type MonitoringRequest struct {
 	FormationDate time.Time `json:"formationDate"`
 	EndingDate    time.Time `json:"endingDate"`
 	AdminId       int       `json:"adminId"`
+	Admin         string    `json:"admin"`
 	CreatorId     int       `json:"userId,omitempty"`
 	Creator       string    `json:"creator,omitempty"`
 }
