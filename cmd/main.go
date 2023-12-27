@@ -23,5 +23,5 @@ func main() {
 
 	handler := handler.NewHandler(logger)
 	r := handler.InitRoutes()
-	r.Run("192.168.0.106:8080")
+	r.Run("localhost:8080")
 }

@@ -20,7 +20,7 @@ import (
 // @Success      200  {object}  []models.MonitoringRequest
 // @Failure      400  {object}  error
 // @Failure      500  {object}  error
-// @Router       /monitoring-requests [get]
+// @Router       /api/monitoring-requests [get]
 func (h *Handler) GetMonitoringRequestsList(c *gin.Context) {
 	status := c.Query("status")
 	startDateStr := c.Query("start_date")
@@ -68,7 +68,7 @@ func (h *Handler) GetMonitoringRequestsList(c *gin.Context) {
 // @Param        id  path  int  true  "Monitoring Request ID"
 // @Success      200  {object}  map[string]any
 // @Failure      400  {object}  error
-// @Router       /monitoring-requests/{id} [get]
+// @Router       /api/monitoring-requests/{id} [get]
 func (h *Handler) GetMonitoringRequestById(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -94,7 +94,7 @@ func (h *Handler) GetMonitoringRequestById(c *gin.Context) {
 // @Param        threatId  path  int  true  "Threat ID"
 // @Success      200  {object}  map[string]any
 // @Failure      400  {object}  error
-// @Router       /threats/request/{threatId} [post]
+// @Router       /api/threats/request/{threatId} [post]
 func (h *Handler) AddThreatToRequest(c *gin.Context) {
 	var request models.MonitoringRequestCreateMessage
 	var err error

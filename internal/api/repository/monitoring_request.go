@@ -31,13 +31,13 @@ func (r *Repository) GetMonitoringRequests(status string, startDate, endDate tim
 		if startDate.IsZero() {
 			if endDate.IsZero() {
 				// фильтрация только по статусу
-				res := r.db.Where("status = ? AND status != 'delete'"+ending, status).Find(&monitoringRequests)
+				res := r.db.Where("status = ? AND status != 'delete' AND status != 'created'"+ending, status).Find(&monitoringRequests)
 				monitoringRequests, _ = r.GetUsersLoginForRequests(monitoringRequests)
 				return monitoringRequests, res.Error
 			}
 
 			// фильтрация по статусу и endDate
-			res := r.db.Where("status = ? AND status != 'delete'"+ending, status).Where("creation_date < ?", endDate).
+			res := r.db.Where("status = ? AND status != 'delete' AND status != 'created'"+ending, status).Where("creation_date < ?", endDate).
 				Find(&monitoringRequests)
 			monitoringRequests, _ = r.GetUsersLoginForRequests(monitoringRequests)
 			return monitoringRequests, res.Error
@@ -45,14 +45,14 @@ func (r *Repository) GetMonitoringRequests(status string, startDate, endDate tim
 
 		// фильтрация по статусу и startDate
 		if endDate.IsZero() {
-			res := r.db.Where("status = ? AND status != 'delete'"+ending, status).Where("creation_date > ?", startDate).
+			res := r.db.Where("status = ? AND status != 'delete' AND status != 'created' "+ending, status).Where("creation_date > ?", startDate).
 				Find(&monitoringRequests)
 			monitoringRequests, _ = r.GetUsersLoginForRequests(monitoringRequests)
 			return monitoringRequests, res.Error
 		}
 
 		// фильтрация по статусу, startDate и endDate
-		res := r.db.Where("status = ? AND status != 'delete'"+ending, status).Where("creation_date BETWEEN ? AND ?", startDate, endDate).
+		res := r.db.Where("status = ? AND status != 'delete' AND status != 'created' "+ending, status).Where("creation_date BETWEEN ? AND ?", startDate, endDate).
 			Find(&monitoringRequests)
 		monitoringRequests, _ = r.GetUsersLoginForRequests(monitoringRequests)
 		return monitoringRequests, res.Error
@@ -61,13 +61,13 @@ func (r *Repository) GetMonitoringRequests(status string, startDate, endDate tim
 	if startDate.IsZero() {
 		if endDate.IsZero() {
 			// без фильтрации
-			res := r.db.Where("status <> ?"+ending, "delete").Find(&monitoringRequests)
+			res := r.db.Where("status <> ? AND status != 'created' "+ending, "delete").Find(&monitoringRequests)
 			monitoringRequests, _ = r.GetUsersLoginForRequests(monitoringRequests)
 			return monitoringRequests, res.Error
 		}
 
 		// фильтрация по endDate
-		res := r.db.Where("creation_date < ?"+ending, endDate).
+		res := r.db.Where("creation_date < ? AND status != 'created'"+ending, endDate).
 			Find(&monitoringRequests)
 		monitoringRequests, _ = r.GetUsersLoginForRequests(monitoringRequests)
 		return monitoringRequests, res.Error
@@ -75,14 +75,14 @@ func (r *Repository) GetMonitoringRequests(status string, startDate, endDate tim
 
 	if endDate.IsZero() {
 		// фильтрация по startDate
-		res := r.db.Where("creation_date > ?"+ending, startDate).
+		res := r.db.Where("creation_date > ? AND status != 'created'"+ending, startDate).
 			Find(&monitoringRequests)
 		monitoringRequests, _ = r.GetUsersLoginForRequests(monitoringRequests)
 		return monitoringRequests, res.Error
 	}
 
 	//фильтрация по startDate и endDate
-	res := r.db.Where("creation_date BETWEEN ? AND ?"+ending, startDate, endDate).
+	res := r.db.Where("creation_date BETWEEN ? AND ? AND status != 'created' AND status != 'deleted'"+ending, startDate, endDate).
 		Find(&monitoringRequests)
 	monitoringRequests, _ = r.GetUsersLoginForRequests(monitoringRequests)
 

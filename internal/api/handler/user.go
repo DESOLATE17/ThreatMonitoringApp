@@ -22,7 +22,7 @@ import (
 // @Failure      400  {object}  error
 // @Failure      409  {object}  error
 // @Failure      500  {object}  error
-// @Router       /signUp [post]
+// @Router       /api/signUp [post]
 func (h *Handler) SignUp(c *gin.Context) {
 	var newClient models.UserSignUp
 	var err error
@@ -39,7 +39,6 @@ func (h *Handler) SignUp(c *gin.Context) {
 
 	if err = h.repo.SignUp(c.Request.Context(), models.User{
 		Login:    newClient.Login,
-		Name:     newClient.Name,
 		Password: newClient.Password,
 	}); err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "нельзя создать пользователя с таким логином"})
@@ -48,6 +47,27 @@ func (h *Handler) SignUp(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "пользователь успешно создан"})
+}
+
+// CheckAuth godoc
+// @Summary      Check user authentication
+// @Description  Retrieves user information based on the provided user context
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  models.User
+// @Failure      500  {object}  string
+// @Router       /api/check-auth [get]
+func (h *Handler) CheckAuth(c *gin.Context) {
+	var userInfo = models.User{UserId: c.GetInt(userCtx)}
+
+	userInfo, err := h.repo.GetUserInfo(c.Request.Context(), userInfo)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, "неверный формат данных")
+		return
+	}
+
+	c.JSON(http.StatusOK, userInfo)
 }
 
 // SignIn godoc
@@ -61,7 +81,7 @@ func (h *Handler) SignUp(c *gin.Context) {
 // @Failure      400  {object}  error
 // @Failure      401  {object}  error
 // @Failure      500  {object}  error
-// @Router       /signIn [post]
+// @Router       /api/signIn [post]
 func (h *Handler) SignIn(c *gin.Context) {
 	var clientInfo models.UserLogin
 	var err error
@@ -93,7 +113,7 @@ func (h *Handler) SignIn(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("AccessToken", "Bearer "+token, 0, "/", "127.0.0.1:8080", false, true)
+	c.SetCookie("AccessToken", "Bearer "+token, 0, "/", "localhost", false, true)
 	c.JSON(http.StatusOK, gin.H{"message": "клиент успешно авторизован"})
 }
 
@@ -105,7 +125,7 @@ func (h *Handler) SignIn(c *gin.Context) {
 // @Produce      json
 // @Success      200
 // @Failure      400
-// @Router       /logout [post]
+// @Router       /api/logout [post]
 func (h *Handler) Logout(c *gin.Context) {
 	jwtStr, err := c.Cookie("AccessToken")
 	if !strings.HasPrefix(jwtStr, jwtPrefix) || err != nil { // если нет префикса то нас дурят!

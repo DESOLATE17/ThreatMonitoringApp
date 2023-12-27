@@ -76,36 +76,58 @@ func NewHandler(logger *logrus.Logger) *Handler {
 	}
 }
 
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "localhost")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}
+
 func (h *Handler) InitRoutes() *gin.Engine {
 	r := gin.Default()
+	r.Use(CORSMiddleware())
 
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/styles", "./styles")
 	r.Static("/image", "./resources")
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// услуги - угрозы
-	r.GET("/api/threats", h.GetThreatsList)
-	r.GET("/api/threats/:id", h.GetThreatById)
-	r.DELETE("/threats/:id", h.WithAuthCheck([]models.Role{models.Admin}), h.DeleteThreat)
-	r.POST("/threats", h.WithAuthCheck([]models.Role{models.Admin}), h.AddThreat)
-	r.PUT("/threats/:id", h.WithAuthCheck([]models.Role{models.Admin}), h.UpdateThreat)
-	r.POST("/threats/request/:threatId", h.WithAuthCheck([]models.Role{models.Client}), h.AddThreatToRequest)
+	apiGroup := r.Group("/api")
+	{
+		apiGroup.GET("/threats", h.GetThreatsList)
+		apiGroup.GET("/threats/:id", h.GetThreatById)
+		apiGroup.DELETE("/threats/:id", h.WithAuthCheck([]models.Role{models.Admin}), h.DeleteThreat)
+		apiGroup.POST("/threats", h.WithAuthCheck([]models.Role{models.Admin}), h.AddThreat)
+		apiGroup.PUT("/threats/:id", h.WithAuthCheck([]models.Role{models.Admin}), h.UpdateThreat)
+		apiGroup.POST("/threats/request/:threatId", h.WithAuthCheck([]models.Role{models.Client}), h.AddThreatToRequest)
 
-	// заявки - мониторинг угроз
-	r.GET("/monitoring-requests", h.WithAuthCheck([]models.Role{models.Admin, models.Client}), h.GetMonitoringRequestsList)
-	// разный доступ, у админа к любой, у юзера только к своей
-	r.GET("/monitoring-requests/:id", h.WithAuthCheck([]models.Role{models.Client, models.Admin}), h.GetMonitoringRequestById)
-	r.DELETE("/monitoring-requests", h.WithAuthCheck([]models.Role{models.Client}), h.DeleteMonitoringRequest)
-	r.PUT("/monitoring-requests/client", h.WithAuthCheck([]models.Role{models.Client}), h.UpdateMonitoringRequestClient)
-	r.PUT("/monitoring-requests/admin/:requestId", h.WithAuthCheck([]models.Role{models.Admin}), h.UpdateMonitoringRequestAdmin)
+		// заявки - мониторинг угроз
+		apiGroup.GET("/monitoring-requests", h.WithAuthCheck([]models.Role{models.Admin, models.Client}), h.GetMonitoringRequestsList)
+		// разный доступ, у админа к любой, у юзера только к своей
+		apiGroup.GET("/monitoring-requests/:id", h.WithAuthCheck([]models.Role{models.Client, models.Admin}), h.GetMonitoringRequestById)
+		apiGroup.DELETE("/monitoring-requests", h.WithAuthCheck([]models.Role{models.Client}), h.DeleteMonitoringRequest)
+		apiGroup.PUT("/monitoring-requests/client", h.WithAuthCheck([]models.Role{models.Client}), h.UpdateMonitoringRequestClient)
+		apiGroup.PUT("/monitoring-requests/admin/:requestId", h.WithAuthCheck([]models.Role{models.Admin}), h.UpdateMonitoringRequestAdmin)
 
-	// м-м
+		// м-м
 
-	r.DELETE("/monitoring-request-threats/threats/:threatId", h.WithAuthCheck([]models.Role{models.Client}), h.DeleteThreatFromRequest)
+		apiGroup.DELETE("/monitoring-request-threats/threats/:threatId", h.WithAuthCheck([]models.Role{models.Client}), h.DeleteThreatFromRequest)
 
-	// авторизация и регистрация
-	r.POST("/signIn", h.SignIn)
-	r.POST("/signUp", h.SignUp)
-	r.POST("/logout", h.Logout)
+		// авторизация и регистрация
+		apiGroup.POST("/signIn", h.SignIn)
+		apiGroup.POST("/signUp", h.SignUp)
+		apiGroup.POST("/logout", h.Logout)
+		apiGroup.GET("/check-auth", h.WithAuthCheck([]models.Role{models.Client, models.Admin}), h.CheckAuth)
+	}
+
 	return r
 }

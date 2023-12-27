@@ -15,7 +15,36 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/logout": {
+        "/api/check-auth": {
+            "get": {
+                "description": "Retrieves user information based on the provided user context",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Check user authentication",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/logout": {
             "post": {
                 "description": "Logs out the user by blacklisting the access token",
                 "consumes": [
@@ -38,44 +67,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/monitoring-request-threats/threats/{threatId}": {
-            "delete": {
-                "description": "Deletes a threat from a request based on the user ID and threat ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MonitoringRequests"
-                ],
-                "summary": "Delete threat from request",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Threat ID",
-                        "name": "threatId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/monitoring-requests": {
+        "/api/monitoring-requests": {
             "get": {
                 "description": "Retrieves a list of monitoring requests based on the provided parameters",
                 "consumes": [
@@ -127,131 +119,9 @@ const docTemplate = `{
                         "schema": {}
                     }
                 }
-            },
-            "delete": {
-                "description": "Deletes a monitoring request for the given user ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MonitoringRequests"
-                ],
-                "summary": "Delete monitoring request by user ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "user_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {}
-                    }
-                }
             }
         },
-        "/monitoring-requests/admin/{requestId}": {
-            "put": {
-                "description": "Updates the status of a monitoring request with the given ID on \"accepted\"/\"closed\"/\"canceled\"",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MonitoringRequests"
-                ],
-                "summary": "Update monitoring request status by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Request ID",
-                        "name": "requestId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "New request status",
-                        "name": "newRequestStatus",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.NewStatus"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/monitoring-requests/client": {
-            "put": {
-                "description": "Updates the status of a monitoring request by client on formated",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MonitoringRequests"
-                ],
-                "summary": "Update monitoring request status by client",
-                "parameters": [
-                    {
-                        "description": "New status of the monitoring request",
-                        "name": "newStatus",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.NewStatus"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/monitoring-requests/{id}": {
+        "/api/monitoring-requests/{id}": {
             "get": {
                 "description": "Retrieves a monitoring request with the given ID",
                 "consumes": [
@@ -288,7 +158,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/signIn": {
+        "/api/signIn": {
             "post": {
                 "description": "Authenticates a user and generates an access token",
                 "consumes": [
@@ -335,7 +205,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/signUp": {
+        "/api/signUp": {
             "post": {
                 "description": "Creates a new user account",
                 "consumes": [
@@ -382,7 +252,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/threats": {
+        "/api/threats": {
             "get": {
                 "description": "Retrieves a list of threats based on the provided query.",
                 "consumes": [
@@ -400,6 +270,18 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Query string to filter threats",
                         "name": "query",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "LowPrice to filter threats",
+                        "name": "lowPrice",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "HighPrice string to filter threats",
+                        "name": "highPrice",
                         "in": "query"
                     }
                 ],
@@ -489,7 +371,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/threats/request/{threatId}": {
+        "/api/threats/request/{threatId}": {
             "post": {
                 "description": "Adds a threat to a monitoring request",
                 "consumes": [
@@ -526,7 +408,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/threats/{id}": {
+        "/api/threats/{id}": {
             "get": {
                 "description": "Retrieves a threat by its ID",
                 "produces": [
@@ -658,6 +540,167 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/monitoring-request-threats/threats/{threatId}": {
+            "delete": {
+                "description": "Deletes a threat from a request based on the user ID and threat ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MonitoringRequests"
+                ],
+                "summary": "Delete threat from request",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Threat ID",
+                        "name": "threatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/monitoring-requests": {
+            "delete": {
+                "description": "Deletes a monitoring request for the given user ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MonitoringRequests"
+                ],
+                "summary": "Delete monitoring request by user ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/monitoring-requests/admin/{requestId}": {
+            "put": {
+                "description": "Updates the status of a monitoring request with the given ID on \"accepted\"/\"closed\"/\"canceled\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MonitoringRequests"
+                ],
+                "summary": "Update monitoring request status by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Request ID",
+                        "name": "requestId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New request status",
+                        "name": "newRequestStatus",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.NewStatus"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/monitoring-requests/client": {
+            "put": {
+                "description": "Updates the status of a monitoring request by client on formated",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MonitoringRequests"
+                ],
+                "summary": "Update monitoring request status by client",
+                "parameters": [
+                    {
+                        "description": "New status of the monitoring request",
+                        "name": "newStatus",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.NewStatus"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -668,6 +711,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "creationDate": {
+                    "type": "string"
+                },
+                "creator": {
                     "type": "string"
                 },
                 "endingDate": {
@@ -713,7 +759,40 @@ const docTemplate = `{
                 "price": {
                     "type": "integer"
                 },
+                "summary": {
+                    "type": "string"
+                },
                 "threatId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "required": [
+                "login",
+                "password"
+            ],
+            "properties": {
+                "isAdmin": {
+                    "type": "boolean"
+                },
+                "login": {
+                    "type": "string",
+                    "maxLength": 64
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "minLength": 8
+                },
+                "registrationDate": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "integer"
                 }
             }
@@ -746,9 +825,6 @@ const docTemplate = `{
                 "login": {
                     "type": "string",
                     "maxLength": 64
-                },
-                "name": {
-                    "type": "string"
                 },
                 "password": {
                     "type": "string",

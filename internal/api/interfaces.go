@@ -26,4 +26,5 @@ type Repo interface {
 
 	SignUp(ctx context.Context, newUser models.User) error
 	GetByCredentials(ctx context.Context, user models.User) (models.User, error)
+	GetUserInfo(ctx context.Context, user models.User) (models.User, error)
 }

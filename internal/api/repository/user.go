@@ -13,3 +13,8 @@ func (r *Repository) GetByCredentials(ctx context.Context, user models.User) (mo
 	err := r.db.First(&user, "login = ? AND password = ?", user.Login, user.Password).Error
 	return user, err
 }
+
+func (r *Repository) GetUserInfo(ctx context.Context, user models.User) (models.User, error) {
+	err := r.db.First(&user, "user_id = ?", user.UserId).Error
+	return user, err
+}

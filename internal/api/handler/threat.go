@@ -18,7 +18,7 @@ import (
 // @Param        id  path  int  true  "Threat ID"
 // @Success      200  {object}  map[string]any
 // @Failure      400  {object}  error
-// @Router       /threats/{id} [delete]
+// @Router       /api/threats/{id} [delete]
 func (h *Handler) DeleteThreat(c *gin.Context) {
 	threatId := c.Param("id")
 	id, err := strconv.Atoi(threatId)
@@ -42,9 +42,11 @@ func (h *Handler) DeleteThreat(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        query   query    string  false  "Query string to filter threats"
+// @Param        lowPrice   query    number  false  "LowPrice to filter threats"
+// @Param        highPrice   query    number  false  "HighPrice string to filter threats"
 // @Success      200  {object}  map[string]any
 // @Failure      500  {object}  error
-// @Router       /threats [get]
+// @Router       /api/threats [get]
 func (h *Handler) GetThreatsList(c *gin.Context) {
 	query := c.Query("query")
 	lowPriceStr := c.Query("lowPrice")
@@ -92,7 +94,7 @@ func (h *Handler) GetThreatsList(c *gin.Context) {
 // @Param        id   path    int     true        "Threat ID"
 // @Success      200  {object}  models.Threat
 // @Failure      400  {object}  error
-// @Router       /threats/{id} [get]
+// @Router       /api/threats/{id} [get]
 func (h *Handler) GetThreatById(c *gin.Context) {
 	cardId := c.Param("id")
 	id, err := strconv.Atoi(cardId)
@@ -125,7 +127,7 @@ func (h *Handler) GetThreatById(c *gin.Context) {
 // @Success      201  {string}  map[string]an
 // @Failure      400  {object}  map[string]any
 // @Failure      500  {object}  map[string]any
-// @Router       /threats [post]
+// @Router       /api/threats [post]
 func (h *Handler) AddThreat(c *gin.Context) {
 	var newThreat models.Threat
 	file, header, err := c.Request.FormFile("image")
@@ -183,7 +185,7 @@ func (h *Handler) AddThreat(c *gin.Context) {
 // @Param        image       formData    file    false       "image"
 // @Success      200         {object}    map[string]any
 // @Failure      400         {object}    error
-// @Router       /threats/{id} [put]
+// @Router       /api/threats/{id} [put]
 func (h *Handler) UpdateThreat(c *gin.Context) {
 	file, header, err := c.Request.FormFile("image")
 
