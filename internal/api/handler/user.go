@@ -183,11 +183,6 @@ func (h *Handler) FinishUserPayment(c *gin.Context) {
 		return
 	}
 
-	if request.Token != ServerToken {
-		c.AbortWithError(http.StatusForbidden, errors.New("неверный токен"))
-		return
-	}
-
 	// сохраняем в базу
 	err := h.repo.SavePayment(request)
 	if err != nil {
