@@ -42,25 +42,25 @@ func (r *Repository) GetMonitoringRequests(status string, startDate, endDate tim
 	if startDate.IsZero() {
 		if endDate.IsZero() {
 			// без фильтрации
-			res := r.db.Find(&monitoringRequests)
+			res := r.db.Where("status <> 'deleted'").Find(&monitoringRequests)
 			return monitoringRequests, res.Error
 		}
 
 		// фильтрация по endDate
-		res := r.db.Where("formation_date < ?", endDate).
+		res := r.db.Where("formation_date < ? AND status <> 'deleted'", endDate).
 			Find(&monitoringRequests)
 		return monitoringRequests, res.Error
 	}
 
 	if endDate.IsZero() {
 		// фильтрация по startDate
-		res := r.db.Where("formation_date > ?", startDate).
+		res := r.db.Where("formation_date > ? AND status <> 'deleted'", startDate).
 			Find(&monitoringRequests)
 		return monitoringRequests, res.Error
 	}
 
 	//фильтрация по startDate и endDate
-	res := r.db.Where("formation_date BETWEEN ? AND ?", startDate, endDate).
+	res := r.db.Where("formation_date BETWEEN ? AND ? AND status <> 'deleted'", startDate, endDate).
 		Find(&monitoringRequests)
 	return monitoringRequests, res.Error
 }

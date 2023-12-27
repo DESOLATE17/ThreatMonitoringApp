@@ -95,7 +95,7 @@ func (h *Handler) DeleteMonitoringRequest(c *gin.Context) {
 	userId := models.GetClientId()
 	err := h.repo.DeleteMonitoringRequest(userId)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "ошибка при удалении заявки"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "заявка успешно удалена"})
@@ -106,7 +106,7 @@ func (h *Handler) UpdateMonitoringRequestClient(c *gin.Context) {
 	var newRequestStatus models.MonitoringRequest
 	err := c.BindJSON(&newRequestStatus)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "неверный статус"})
 		return
 	}
 
@@ -117,7 +117,7 @@ func (h *Handler) UpdateMonitoringRequestClient(c *gin.Context) {
 
 	err = h.repo.UpdateMonitoringRequestClient(models.GetClientId(), newRequestStatus.Status)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "неверный статус"})
 		return
 	}
 
@@ -129,13 +129,13 @@ func (h *Handler) UpdateMonitoringRequestAdmin(c *gin.Context) {
 	var newRequestStatus models.MonitoringRequest
 	err := c.BindJSON(&newRequestStatus)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "неверный статус"})
 		return
 	}
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "неверный id заявки"})
 		return
 	}
 	if newRequestStatus.Status != "accepted" && newRequestStatus.Status != "canceled" && newRequestStatus.Status != "closed" {
@@ -144,7 +144,7 @@ func (h *Handler) UpdateMonitoringRequestAdmin(c *gin.Context) {
 	}
 	err = h.repo.UpdateMonitoringRequestAdmin(id, newRequestStatus.Status)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "неверный статус"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Статус изменен"})
