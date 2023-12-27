@@ -22,4 +22,6 @@ type Repo interface {
 	GetMonitoringRequestDraft(userId int) (int, error)
 
 	DeleteThreatFromRequest(userId, threatId int) (models.MonitoringRequest, []models.Threat, error)
+
+	GetUsersLoginForRequests(monitoringRequests []models.MonitoringRequest) ([]models.MonitoringRequest, error)
 }
