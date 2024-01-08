@@ -21,6 +21,7 @@ type Repo interface {
 	UpdateMonitoringRequestClient(id int, status string) error
 	UpdateMonitoringRequestAdmin(adminId int, requestId int, status string) error
 	GetMonitoringRequestDraft(userId int) (int, error)
+	SavePayment(monitoringRequest models.RequestAsyncService) error
 
 	DeleteThreatFromRequest(userId, threatId int) (models.MonitoringRequest, []models.Threat, error)
 

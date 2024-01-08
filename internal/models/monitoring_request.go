@@ -12,6 +12,13 @@ type MonitoringRequest struct {
 	Admin         string    `json:"admin"`
 	CreatorId     int       `json:"userId,omitempty"`
 	Creator       string    `json:"creator,omitempty"`
+	Receipt       string    `json:"receipt"`
+}
+
+type RequestAsyncService struct {
+	RequestId int    `gorm:"primaryKey" json:"requestId"`
+	Receipt   string `json:"receipt"`
+	Token     string `json:"Server-Token"`
 }
 
 type MonitoringRequestCreateMessage struct {
