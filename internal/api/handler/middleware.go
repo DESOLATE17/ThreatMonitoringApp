@@ -19,12 +19,12 @@ const (
 func (h *Handler) WithAuthCheck(assignedRoles []models.Role) func(ctx *gin.Context) {
 	return func(gCtx *gin.Context) {
 		jwtStr, err := gCtx.Cookie("AccessToken")
-		if err != nil {
+		if err != nil && len(assignedRoles) != 0 {
 			gCtx.AbortWithStatus(http.StatusForbidden) // отдаем что нет доступа
 			return
 		}
 
-		if !strings.HasPrefix(jwtStr, jwtPrefix) { // если нет префикса то нас дурят!
+		if !strings.HasPrefix(jwtStr, jwtPrefix) && len(assignedRoles) != 0 { // если нет префикса то нас дурят!
 			gCtx.AbortWithStatus(http.StatusForbidden) // отдаем что нет доступа
 			return
 		}
@@ -32,12 +32,12 @@ func (h *Handler) WithAuthCheck(assignedRoles []models.Role) func(ctx *gin.Conte
 		jwtStr = jwtStr[len(jwtPrefix):]
 
 		err = h.redis.CheckJWTInBlacklist(gCtx.Request.Context(), jwtStr)
-		if err == nil { // значит что токен в блеклисте
+		if err == nil && len(assignedRoles) != 0 { // значит что токен в блеклисте
 			gCtx.AbortWithStatus(http.StatusForbidden)
 
 			return
 		}
-		if !errors.Is(err, redis.Nil) {
+		if !errors.Is(err, redis.Nil) && len(assignedRoles) != 0 {
 			gCtx.AbortWithError(http.StatusInternalServerError, err)
 
 			return

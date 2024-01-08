@@ -8,4 +8,5 @@ type Threat struct {
 	Image       string `json:"image"`
 	Count       int    `json:"count"`
 	Price       int    `json:"price"`
+	IsDeleted   bool   `json:"isDeleted"`
 }

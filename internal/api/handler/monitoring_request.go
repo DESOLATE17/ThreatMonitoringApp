@@ -129,10 +129,9 @@ func (h *Handler) AddThreatToRequest(c *gin.Context) {
 // @Tags         MonitoringRequests
 // @Accept       json
 // @Produce      json
-// @Param        user_id  path  int  true  "User ID"
 // @Success      200  {object}  map[string]any
 // @Failure      400  {object}  error
-// @Router       /monitoring-requests [delete]
+// @Router       /api/monitoring-requests [delete]
 func (h *Handler) DeleteMonitoringRequest(c *gin.Context) {
 	userId := c.GetInt(userCtx)
 	err := h.repo.DeleteMonitoringRequest(userId)
@@ -152,7 +151,7 @@ func (h *Handler) DeleteMonitoringRequest(c *gin.Context) {
 // @Param        newStatus    body    models.NewStatus  true    "New status of the monitoring request"
 // @Success      200          {object}  map[string]string
 // @Failure      400          {object}  error
-// @Router       /monitoring-requests/client [put]
+// @Router       /api/monitoring-requests/client [put]
 func (h *Handler) UpdateMonitoringRequestClient(c *gin.Context) {
 	var newRequestStatus models.NewStatus
 	err := c.BindJSON(&newRequestStatus)
@@ -201,7 +200,7 @@ func (h *Handler) UpdateMonitoringRequestAdmin(c *gin.Context) {
 		return
 	}
 
-	if newRequestStatus.Status != "accepted" && newRequestStatus.Status != "canceled" && newRequestStatus.Status != "closed" {
+	if newRequestStatus.Status != "accepted" && newRequestStatus.Status != "canceled" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Поменять статус можно только на 'accepted, 'closed' и 'canceled'"})
 		return
 	}
@@ -223,7 +222,7 @@ func (h *Handler) UpdateMonitoringRequestAdmin(c *gin.Context) {
 // @Param        threatId  path  int  true  "Threat ID"
 // @Success      200  {object}  map[string]interface{}
 // @Failure      400  {object}  error
-// @Router       /monitoring-request-threats/threats/{threatId} [delete]
+// @Router       /api/monitoring-request-threats/threats/{threatId} [delete]
 func (h *Handler) DeleteThreatFromRequest(c *gin.Context) {
 	threatIdStr := c.Param("threatId")
 	threatId, err := strconv.Atoi(threatIdStr)

@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"os"
 	_ "threat-monitoring/docs"
 	"threat-monitoring/internal/api"
@@ -78,10 +78,10 @@ func NewHandler(logger *logrus.Logger) *Handler {
 
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "localhost")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", c.GetHeader("Origin"))
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
@@ -103,7 +103,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	// услуги - угрозы
 	apiGroup := r.Group("/api")
 	{
-		apiGroup.GET("/threats", h.GetThreatsList)
+		apiGroup.GET("/threats", h.WithAuthCheck([]models.Role{}), h.GetThreatsList)
 		apiGroup.GET("/threats/:id", h.GetThreatById)
 		apiGroup.DELETE("/threats/:id", h.WithAuthCheck([]models.Role{models.Admin}), h.DeleteThreat)
 		apiGroup.POST("/threats", h.WithAuthCheck([]models.Role{models.Admin}), h.AddThreat)

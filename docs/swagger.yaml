@@ -2,6 +2,8 @@ basePath: /
 definitions:
   models.MonitoringRequest:
     properties:
+      admin:
+        type: string
       adminId:
         type: integer
       creationDate:
@@ -32,6 +34,8 @@ definitions:
         type: string
       image:
         type: string
+      isDeleted:
+        type: boolean
       name:
         type: string
       price:
@@ -88,7 +92,7 @@ definitions:
     - login
     - password
     type: object
-host: localhost:8080
+host: localhost:3001
 info:
   contact: {}
   description: App for serving threats monitoring requests
@@ -129,7 +133,51 @@ paths:
       summary: Logout
       tags:
       - Authentication
+  /api/monitoring-request-threats/threats/{threatId}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a threat from a request based on the user ID and threat
+        ID
+      parameters:
+      - description: Threat ID
+        in: path
+        name: threatId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Delete threat from request
+      tags:
+      - MonitoringRequests
   /api/monitoring-requests:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a monitoring request for the given user ID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Delete monitoring request by user ID
+      tags:
+      - MonitoringRequests
     get:
       consumes:
       - application/json
@@ -188,6 +236,33 @@ paths:
           description: Bad Request
           schema: {}
       summary: Get monitoring request by ID
+      tags:
+      - MonitoringRequests
+  /api/monitoring-requests/client:
+    put:
+      consumes:
+      - application/json
+      description: Updates the status of a monitoring request by client on formated
+      parameters:
+      - description: New status of the monitoring request
+        in: body
+        name: newStatus
+        required: true
+        schema:
+          $ref: '#/definitions/models.NewStatus'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Update monitoring request status by client
       tags:
       - MonitoringRequests
   /api/signIn:
@@ -289,12 +364,12 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Add a new threat with image, name, description, count, and price
+      description: Add a new threat with image, name, description, summary, count,
+        and price
       parameters:
       - description: Threat image
         in: formData
         name: image
-        required: true
         type: file
       - description: Threat name
         in: formData
@@ -305,16 +380,20 @@ paths:
         in: formData
         name: description
         type: string
+      - description: Threat summary
+        in: formData
+        name: summary
+        type: string
       - description: Threat count
         in: formData
         name: count
         required: true
-        type: integer
+        type: string
       - description: Threat price
         in: formData
         name: price
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -450,57 +529,6 @@ paths:
       summary: Add threat to request
       tags:
       - Threats
-  /monitoring-request-threats/threats/{threatId}:
-    delete:
-      consumes:
-      - application/json
-      description: Deletes a threat from a request based on the user ID and threat
-        ID
-      parameters:
-      - description: Threat ID
-        in: path
-        name: threatId
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema: {}
-      summary: Delete threat from request
-      tags:
-      - MonitoringRequests
-  /monitoring-requests:
-    delete:
-      consumes:
-      - application/json
-      description: Deletes a monitoring request for the given user ID
-      parameters:
-      - description: User ID
-        in: path
-        name: user_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema: {}
-      summary: Delete monitoring request by user ID
-      tags:
-      - MonitoringRequests
   /monitoring-requests/admin/{requestId}:
     put:
       consumes:
@@ -531,33 +559,6 @@ paths:
           description: Bad Request
           schema: {}
       summary: Update monitoring request status by ID
-      tags:
-      - MonitoringRequests
-  /monitoring-requests/client:
-    put:
-      consumes:
-      - application/json
-      description: Updates the status of a monitoring request by client on formated
-      parameters:
-      - description: New status of the monitoring request
-        in: body
-        name: newStatus
-        required: true
-        schema:
-          $ref: '#/definitions/models.NewStatus'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema: {}
-      summary: Update monitoring request status by client
       tags:
       - MonitoringRequests
 schemes:

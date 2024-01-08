@@ -10,7 +10,7 @@ import (
 // @version 1.0
 // @description App for serving threats monitoring requests
 
-// @host localhost:8080
+// @host localhost:3001
 // @schemes http
 // @BasePath /
 func main() {

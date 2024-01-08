@@ -67,7 +67,7 @@ func (h *Handler) GetThreatsList(c *gin.Context) {
 		return
 	}
 
-	threats, err := h.repo.GetThreatsList(query, lowPriceStr, highPriceStr)
+	threats, err := h.repo.GetThreatsList(query, lowPriceStr, highPriceStr, c.GetBool(adminCtx))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 		return
@@ -115,15 +115,16 @@ func (h *Handler) GetThreatById(c *gin.Context) {
 
 // AddThreat godoc
 // @Summary      Add new threat
-// @Description  Add a new threat with image, name, description, count, and price
+// @Description  Add a new threat with image, name, description, summary, count, and price
 // @Tags         Threats
 // @Accept       multipart/form-data
 // @Produce      json
-// @Param        image formData file true "Threat image"
+// @Param        image formData file false "Threat image"
 // @Param        name formData string true "Threat name"
 // @Param        description formData string false "Threat description"
-// @Param        count formData integer true "Threat count"
-// @Param        price formData integer true "Threat price"
+// @Param        summary formData string false "Threat summary"
+// @Param        count formData string true "Threat count"
+// @Param        price formData string true "Threat price"
 // @Success      201  {string}  map[string]an
 // @Failure      400  {object}  map[string]any
 // @Failure      500  {object}  map[string]any
@@ -131,9 +132,11 @@ func (h *Handler) GetThreatById(c *gin.Context) {
 func (h *Handler) AddThreat(c *gin.Context) {
 	var newThreat models.Threat
 	file, header, err := c.Request.FormFile("image")
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "ошибка при загрузке изображения"})
-		return
+	if err == nil {
+		if newThreat.Image, err = h.minio.SaveImage(c.Request.Context(), file, header); err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "ошибка при сохранении изображения"})
+			return
+		}
 	}
 
 	newThreat.Name = c.Request.FormValue("name")
@@ -155,11 +158,6 @@ func (h *Handler) AddThreat(c *gin.Context) {
 	newThreat.Price, err = strconv.Atoi(price)
 	if err != nil || newThreat.Price == 0 {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "цена указана неверно"})
-		return
-	}
-
-	if newThreat.Image, err = h.minio.SaveImage(c.Request.Context(), file, header); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "ошибка при сохранении изображения"})
 		return
 	}
 

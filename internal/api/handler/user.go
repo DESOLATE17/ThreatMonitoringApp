@@ -114,7 +114,7 @@ func (h *Handler) SignIn(c *gin.Context) {
 	}
 
 	c.SetCookie("AccessToken", "Bearer "+token, 0, "/", "localhost", false, true)
-	c.JSON(http.StatusOK, gin.H{"message": "клиент успешно авторизован"})
+	c.JSON(http.StatusOK, gin.H{"message": "клиент успешно авторизован", "isAdmin": user.IsAdmin, "login": user.Login, "userId": user.UserId})
 }
 
 // Logout godoc
