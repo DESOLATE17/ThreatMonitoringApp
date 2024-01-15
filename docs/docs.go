@@ -184,6 +184,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/monitoring-requests/admin/{requestId}": {
+            "put": {
+                "description": "Updates the status of a monitoring request with the given ID on \"accepted\"/\"closed\"/\"canceled\"",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MonitoringRequests"
+                ],
+                "summary": "Update monitoring request status by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Request ID",
+                        "name": "requestId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New request status",
+                        "name": "newRequestStatus",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.NewStatus"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/api/monitoring-requests/client": {
             "put": {
                 "description": "Updates the status of a monitoring request by client on formated",
@@ -221,6 +267,50 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/monitoring-requests/user-payment-start": {
+            "put": {
+                "description": "Accepts a payment request and sends it to the service.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Handle user payment request",
+                "parameters": [
+                    {
+                        "description": "Payment request object",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RequestAsyncService"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success response",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 }
             }
@@ -649,52 +739,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/monitoring-requests/admin/{requestId}": {
-            "put": {
-                "description": "Updates the status of a monitoring request with the given ID on \"accepted\"/\"closed\"/\"canceled\"",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MonitoringRequests"
-                ],
-                "summary": "Update monitoring request status by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Request ID",
-                        "name": "requestId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "New request status",
-                        "name": "newRequestStatus",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.NewStatus"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {}
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -719,6 +763,9 @@ const docTemplate = `{
                 "formationDate": {
                     "type": "string"
                 },
+                "receipt": {
+                    "type": "string"
+                },
                 "requestId": {
                     "type": "integer"
                 },
@@ -735,6 +782,20 @@ const docTemplate = `{
             "properties": {
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "models.RequestAsyncService": {
+            "type": "object",
+            "properties": {
+                "Server-Token": {
+                    "type": "string"
+                },
+                "receipt": {
+                    "type": "string"
+                },
+                "requestId": {
+                    "type": "integer"
                 }
             }
         },

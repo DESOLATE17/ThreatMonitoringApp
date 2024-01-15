@@ -160,6 +160,16 @@ const (
 	ServiceUrl  = "http://127.0.0.1:8081/addPayment/"
 )
 
+// UserPayment handles user payment requests.
+// @Summary Handle user payment request
+// @Description Accepts a payment request and sends it to the service.
+// @Accept json
+// @Produce json
+// @Param request body models.RequestAsyncService true "Payment request object"
+// @Success 200 {object} map[string]any "Success response"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /api/monitoring-requests/user-payment-start [put]
 func (h *Handler) UserPayment(c *gin.Context) {
 	// принимает заявку и отправляет её в сервис
 	var request models.RequestAsyncService

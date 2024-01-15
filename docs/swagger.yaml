@@ -14,6 +14,8 @@ definitions:
         type: string
       formationDate:
         type: string
+      receipt:
+        type: string
       requestId:
         type: integer
       status:
@@ -25,6 +27,15 @@ definitions:
     properties:
       status:
         type: string
+    type: object
+  models.RequestAsyncService:
+    properties:
+      Server-Token:
+        type: string
+      receipt:
+        type: string
+      requestId:
+        type: integer
     type: object
   models.Threat:
     properties:
@@ -238,6 +249,38 @@ paths:
       summary: Get monitoring request by ID
       tags:
       - MonitoringRequests
+  /api/monitoring-requests/admin/{requestId}:
+    put:
+      consumes:
+      - application/json
+      description: Updates the status of a monitoring request with the given ID on
+        "accepted"/"closed"/"canceled"
+      parameters:
+      - description: Request ID
+        in: path
+        name: requestId
+        required: true
+        type: integer
+      - description: New request status
+        in: body
+        name: newRequestStatus
+        required: true
+        schema:
+          $ref: '#/definitions/models.NewStatus'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+      summary: Update monitoring request status by ID
+      tags:
+      - MonitoringRequests
   /api/monitoring-requests/client:
     put:
       consumes:
@@ -265,6 +308,35 @@ paths:
       summary: Update monitoring request status by client
       tags:
       - MonitoringRequests
+  /api/monitoring-requests/user-payment-start:
+    put:
+      consumes:
+      - application/json
+      description: Accepts a payment request and sends it to the service.
+      parameters:
+      - description: Payment request object
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RequestAsyncService'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Handle user payment request
   /api/signIn:
     post:
       consumes:
@@ -529,38 +601,6 @@ paths:
       summary: Add threat to request
       tags:
       - Threats
-  /monitoring-requests/admin/{requestId}:
-    put:
-      consumes:
-      - application/json
-      description: Updates the status of a monitoring request with the given ID on
-        "accepted"/"closed"/"canceled"
-      parameters:
-      - description: Request ID
-        in: path
-        name: requestId
-        required: true
-        type: integer
-      - description: New request status
-        in: body
-        name: newRequestStatus
-        required: true
-        schema:
-          $ref: '#/definitions/models.NewStatus'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema: {}
-      summary: Update monitoring request status by ID
-      tags:
-      - MonitoringRequests
 schemes:
 - http
 swagger: "2.0"

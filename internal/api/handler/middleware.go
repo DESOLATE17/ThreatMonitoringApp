@@ -29,8 +29,9 @@ func (h *Handler) WithAuthCheck(assignedRoles []models.Role) func(ctx *gin.Conte
 			return
 		}
 
-		jwtStr = jwtStr[len(jwtPrefix):]
-
+		if len(jwtStr) != 0 {
+			jwtStr = jwtStr[len(jwtPrefix):]
+		}
 		err = h.redis.CheckJWTInBlacklist(gCtx.Request.Context(), jwtStr)
 		if err == nil && len(assignedRoles) != 0 { // значит что токен в блеклисте
 			gCtx.AbortWithStatus(http.StatusForbidden)

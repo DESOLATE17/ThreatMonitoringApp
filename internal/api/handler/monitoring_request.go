@@ -184,7 +184,7 @@ func (h *Handler) UpdateMonitoringRequestClient(c *gin.Context) {
 // @Param        newRequestStatus  body  models.NewStatus  true  "New request status"
 // @Success      200  {object}  map[string]any
 // @Failure      400  {object}  error
-// @Router       /monitoring-requests/admin/{requestId} [put]
+// @Router       /api/monitoring-requests/admin/{requestId} [put]
 func (h *Handler) UpdateMonitoringRequestAdmin(c *gin.Context) {
 	var newRequestStatus models.NewStatus
 	err := c.BindJSON(&newRequestStatus)
