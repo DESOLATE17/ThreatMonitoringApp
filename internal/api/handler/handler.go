@@ -127,12 +127,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		apiGroup.POST("/signUp", h.SignUp)
 		apiGroup.POST("/logout", h.Logout)
 		apiGroup.GET("/check-auth", h.WithAuthCheck([]models.Role{models.Client, models.Admin}), h.CheckAuth)
-
-		// асинхронный сервис
-		apiGroup.PUT("/monitoring-requests/user-payment-start", h.WithAuthCheck([]models.Role{models.Client}), h.UserPayment) // обращение к асинхронному сервису
-		apiGroup.PUT("/monitoring-requests/user-payment-finish", h.FinishUserPayment)                                         // обращение к асинхронному сервису
 	}
-
 
 	return r
 }
