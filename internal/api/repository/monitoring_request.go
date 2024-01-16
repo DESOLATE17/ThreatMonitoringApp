@@ -174,12 +174,12 @@ func (r *Repository) DeleteMonitoringRequest(id int) error {
 }
 
 // изменение статуса клиента
-func (r *Repository) UpdateMonitoringRequestClient(id int, status string) error {
+func (r *Repository) UpdateMonitoringRequestClient(id int, status string) (int, error) {
 	var monitoringRequest models.MonitoringRequest
 	err := r.db.First(&monitoringRequest, "creator_id = ? and status = 'created'", id)
 	if err.Error != nil {
 		r.logger.Error("error while getting monitoring request")
-		return err.Error
+		return 0, err.Error
 	}
 
 	monitoringRequest.Status = status
@@ -188,7 +188,7 @@ func (r *Repository) UpdateMonitoringRequestClient(id int, status string) error 
 	}
 	res := r.db.Save(&monitoringRequest)
 
-	return res.Error
+	return monitoringRequest.RequestId, res.Error
 }
 
 // получение черновика заявки

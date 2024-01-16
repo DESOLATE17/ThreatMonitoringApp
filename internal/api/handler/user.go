@@ -160,24 +160,11 @@ const (
 	ServiceUrl  = "http://127.0.0.1:8081/addPayment/"
 )
 
-// UserPayment handles user payment requests.
-// @Summary Handle user payment request
-// @Description Accepts a payment request and sends it to the service.
-// @Accept json
-// @Produce json
-// @Param request body models.RequestAsyncService true "Payment request object"
-// @Success 200 {object} map[string]any "Success response"
-// @Failure 400 {string} string "Bad request"
-// @Failure 500 {string} string "Internal server error"
-// @Router /api/monitoring-requests/user-payment-start [put]
-func (h *Handler) UserPayment(c *gin.Context) {
+func (h *Handler) UserPayment(requestId int) error {
 	// принимает заявку и отправляет её в сервис
 	var request models.RequestAsyncService
-	if err := c.BindJSON(&request); err != nil {
-		c.AbortWithError(http.StatusBadRequest, errors.New("неверный формат"))
-		return
-	}
 
+	request.RequestId = requestId
 	request.Token = ServerToken
 
 	body, _ := json.Marshal(request)
@@ -186,7 +173,7 @@ func (h *Handler) UserPayment(c *gin.Context) {
 	req, err := http.NewRequest("PUT", ServiceUrl, bytes.NewBuffer(body))
 	if err != nil {
 		fmt.Println("Error creating request:", err)
-		return
+		return err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -194,14 +181,13 @@ func (h *Handler) UserPayment(c *gin.Context) {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error sending request:", err)
-		return
+		return err
 	}
 
 	if resp.StatusCode == 200 {
-		c.JSON(http.StatusOK, gin.H{"message": "заявка принята в обработку"})
-		return
+		return nil
 	}
-	c.AbortWithError(http.StatusInternalServerError, errors.New("заявка не принята в обработку"))
+	return errors.New("заявка не принята в обработку")
 }
 
 // ручка вызывается сервисом на python

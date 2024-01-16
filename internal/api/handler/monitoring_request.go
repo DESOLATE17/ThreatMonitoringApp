@@ -165,11 +165,13 @@ func (h *Handler) UpdateMonitoringRequestClient(c *gin.Context) {
 		return
 	}
 
-	err = h.repo.UpdateMonitoringRequestClient(c.GetInt(userCtx), newRequestStatus.Status)
+	requestId, err := h.repo.UpdateMonitoringRequestClient(c.GetInt(userCtx), newRequestStatus.Status)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
 	}
+
+	_ = h.UserPayment(requestId)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Статус изменен"})
 }

@@ -11,7 +11,6 @@ create table "users"
             primary key,
     login             varchar(40)             not null UNIQUE,
     is_admin          boolean   default false,
-    name              varchar(40)             not null,
     password          varchar(64)             not null,
     registration_date timestamp default now() not null
 );
@@ -38,6 +37,7 @@ create table monitoring_requests
     creator_id     int
         constraint creator_id_fk
             references "users" (user_id),
+    receipt        TEXT,
     status         varchar(20)             not null,
     creation_date  timestamp default now() not null,
     formation_date timestamp,
@@ -47,7 +47,6 @@ create table monitoring_requests
 -- таблица связи м:м
 create table monitoring_requests_threats
 (
-    id         serial not null,
     request_id int
         constraint request_id_fk
             references monitoring_requests (request_id),
@@ -56,7 +55,3 @@ create table monitoring_requests_threats
             references threats (threat_id),
     unique (request_id, threat_id)
 );
-
-SELECT *
-FROM threats
-WHERE threat_id = 6;
