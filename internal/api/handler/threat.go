@@ -146,6 +146,7 @@ func (h *Handler) AddThreat(c *gin.Context) {
 	}
 
 	newThreat.Description = c.Request.FormValue("description")
+	newThreat.Summary = c.Request.FormValue("summary")
 
 	count := c.Request.FormValue("count")
 	newThreat.Count, err = strconv.Atoi(count)
@@ -196,6 +197,7 @@ func (h *Handler) UpdateThreat(c *gin.Context) {
 
 	updateThreat.Name = c.Request.FormValue("name")
 	updateThreat.Description = c.Request.FormValue("description")
+	updateThreat.Summary = c.Request.FormValue("summary")
 
 	count := c.Request.FormValue("count")
 	if count != "" {

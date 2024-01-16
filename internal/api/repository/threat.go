@@ -21,6 +21,10 @@ func (r *Repository) UpdateThreat(updateThreat models.Threat) error {
 		threat.Description = updateThreat.Description
 	}
 
+	if updateThreat.Summary != "" {
+		threat.Summary = updateThreat.Summary
+	}
+
 	if updateThreat.Image != "" {
 		threat.Image = updateThreat.Image
 	}
