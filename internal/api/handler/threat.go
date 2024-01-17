@@ -2,9 +2,11 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"strings"
 	"threat-monitoring/internal/models"
 	"threat-monitoring/internal/utils"
 )
@@ -67,10 +69,25 @@ func (h *Handler) GetThreatsList(c *gin.Context) {
 		return
 	}
 
-	threats, err := h.repo.GetThreatsList(query, lowPriceStr, highPriceStr, c.GetBool(adminCtx))
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
-		return
+	threats, err := h.redis.GetThreats(c.Request.Context())
+	if err != nil || len(threats) == 0 {
+		threats, err = h.repo.GetThreatsList(query, lowPriceStr, highPriceStr, c.GetBool(adminCtx))
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+			return
+		}
+
+		err = h.redis.SetThreats(c.Request.Context(), threats)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		filteredThreats := make([]models.Threat, 0)
+		for _, threat := range threats {
+			if threat.Price >= lowPrice && threat.Price <= highPrice || strings.Contains(threat.Name, query) {
+				filteredThreats = append(filteredThreats, threat)
+			}
+		}
 	}
 
 	requestId, err := h.repo.GetMonitoringRequestDraft(c.GetInt(userCtx))
@@ -167,6 +184,16 @@ func (h *Handler) AddThreat(c *gin.Context) {
 		return
 	}
 
+	threats, err := h.repo.GetThreatsList("", "0", "1000000", c.GetBool(adminCtx))
+	if err != nil {
+		h.logger.Error(err)
+	}
+
+	err = h.redis.SetThreats(c.Request.Context(), threats)
+	if err != nil {
+		h.logger.Error(err)
+	}
+
 	c.JSON(http.StatusCreated, gin.H{"message": "новая услуга успешно добавлена"})
 }
 
@@ -233,6 +260,16 @@ func (h *Handler) UpdateThreat(c *gin.Context) {
 	if err = h.repo.UpdateThreat(updateThreat); err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
+	}
+
+	threats, err := h.repo.GetThreatsList("", "0", "1000000", c.GetBool(adminCtx))
+	if err != nil {
+		h.logger.Error(err)
+	}
+
+	err = h.redis.SetThreats(c.Request.Context(), threats)
+	if err != nil {
+		h.logger.Error(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "услуга успешно изменена"})

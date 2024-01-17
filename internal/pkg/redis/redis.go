@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"threat-monitoring/internal/models"
 	"time"
 )
 
@@ -40,6 +41,8 @@ type RedisClient struct {
 type Client interface {
 	CheckJWTInBlacklist(ctx context.Context, jwtStr string) error
 	WriteJWTToBlacklist(ctx context.Context, jwtStr string, jwtTTL time.Duration) error
+	GetThreats(ctx context.Context) ([]models.Threat, error)
+	SetThreats(ctx context.Context, threats []models.Threat) error
 }
 
 func InitRedisConfig(vp *viper.Viper, logger *logrus.Logger) RedisConfig {
